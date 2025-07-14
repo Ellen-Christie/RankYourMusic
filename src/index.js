@@ -11,6 +11,11 @@ class bTree {
     }
 }
 
+class localFile {
+    constructor(metadata, file) {
+
+    }
+}
 function balancebTree(tree) {
     return listtobTree(bTreetoList(tree))
 }
@@ -42,7 +47,7 @@ function listtobTree(list) {
     return partialTree(list, list.length)[0];
 }
 
-function* treeOrder(toOrder) {
+function* binaryInsertionOrder(toOrder) {
     let state = new bTree(toOrder[0])
     console.log(toOrder)
     for (let num of toOrder.slice(1)) {
@@ -138,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             let algorithmSelection = document.querySelector("#sortingAlgorithm").value
             if(algorithmSelection === "selectionSort") {
-                gen = await filestobTree(this.files, treeOrder)
+                gen = await filestobTree(this.files, binaryInsertionOrder)
             } else if(algorithmSelection === "binaryInsertionSort") {
                 gen = await filestobTree(this.files, binaryInsertionOrder)
             } else {
