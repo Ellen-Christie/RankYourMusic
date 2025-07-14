@@ -13,7 +13,7 @@ class bTree {
 
 class localFile {
     constructor(metadata, file) {
-
+        
     }
 }
 function balancebTree(tree) {
@@ -74,7 +74,7 @@ function* binaryInsertionOrder(toOrder) {
     return bTreetoList(state)
 }
 
-function* binaryInsertionOrder(toOrder) {
+function* mergOrder(toOrder) {
     function* merge(list1, list2, accumulator) {
         if (list1.length === 0) {
             return [...list2, ...accumulator]
@@ -95,8 +95,8 @@ function* binaryInsertionOrder(toOrder) {
         return toOrder
     } else {
         let middleIndex = Math.floor(toOrder.length / 2)
-        let leftList = yield* binaryInsertionOrder(toOrder.slice(0, middleIndex))
-        let rightList = yield* binaryInsertionOrder(toOrder.slice(middleIndex))
+        let leftList = yield* mergOrder(toOrder.slice(0, middleIndex))
+        let rightList = yield* mergOrder(toOrder.slice(middleIndex))
         return yield* merge(leftList, rightList, [])
     }
 }
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if(algorithmSelection === "selectionSort") {
                 gen = await filestobTree(this.files, binaryInsertionOrder)
             } else if(algorithmSelection === "binaryInsertionSort") {
-                gen = await filestobTree(this.files, binaryInsertionOrder)
+                gen = await filestobTree(this.files, mergOrder)
             } else {
                 console.log("uh oh")
             }
