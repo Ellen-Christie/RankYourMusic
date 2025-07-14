@@ -66,11 +66,37 @@ function* treeOrder(toOrder) {
         let temp = balancebTree(state)
         state = temp
     }
-    return state
+    return bTreetoList(state)
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    async function filestobTree(fileList) {
+function* mergeOrder(toOrder) {
+    function* merge(list1, list2, accumulator) {
+        if (list1.length === 0) {
+            return [...list2, ...accumulator]
+        } else if (list2.length === 0) {
+            return [...list1, ...accumulator]
+        } else {
+            let element1 = list1[0]
+            let element2 = list2[0]
+            let leftBetterThanRight = yield [element1, element2]
+            if (leftBetterThanRight) {
+                return yield* merge(list2.slice(1), list1, [...accumulator, element1])
+            } else {
+                return yield* merge(list1.slice(1), list2, [...accumulator, element2])
+            }
+        }
+    }
+    if (toOrder.length <= 1) {
+        return toOrder
+    } else {
+        let middleIndex = Math.floor(toOrder.length / 2)
+        let leftList = yield* mergeOrder(toOrder.slice(0, middleIndex))
+        let rightList = yield* mergeOrder(toOrder.slice(middleIndex))
+        return yield* merge(leftList, rightList, [])
+    }
+}
+
+async function filestobTree(fileList, sortingMethod) {
         console.log(fileList)
         let songPromiseList = [...fileList].map(async (file) => {
             const metadata = await parseBlob(file);
@@ -78,34 +104,46 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         const songList = Promise.all(songPromiseList)
         console.log(songList)
-        return treeOrder(await songList)
+        return sortingMethod(await songList)
     }
 
-    let urlList = []
-    function musicBoxTemplate(songandFile) {
-        let song = songandFile[0]
-        let file = songandFile[1]
-        let url = URL.createObjectURL(file)
-        urlList.push(url)
-        return `<img src='data:${song.common.picture[0].format};base64,${uint8ArrayToBase64(song.common.picture[0].data)}'/>
-            <p>${song.common.title}</p>
-            <p>${song.common.album}</p>
-            <p>${song.common.artist}</p>
-            <audio controls>
-                <source src='${url}' type='${file.type}'>
-                The audio stream is not supported. Are you using a supported format?
-            </audio>`
-    }
+let urlList = []
+function musicBoxTemplate(songandFile) {
+    let song = songandFile[0]
+    let file = songandFile[1]
+    let url = URL.createObjectURL(file)
+    urlList.push(url)
+    return `<img src='data:${song.common.picture[0].format};base64,${uint8ArrayToBase64(song.common.picture[0].data)}'/>
+        <p>${song.common.title}</p>
+        <p>${song.common.album}</p>
+        <p>${song.common.artist}</p>
+        <audio controls>
+            <source src='${url}' type='${file.type}'>
+            The audio stream is not supported. Are you using a supported format?
+        </audio>`
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    
+
     document.querySelector("#upload").addEventListener("change", async function() {
         document.querySelector("#errorText").innerHTML = ""
         if (!this.files || [...this.files].length <= 2) {
             document.querySelector("#errorText").innerHTML = "Please select more than 2 files to order."
             return
         }
+
         let gen
         try {
-            let genTest = await filestobTree(this.files)
-            gen = genTest
+            let algorithmSelection = document.querySelector("#sortingAlgorithm").value
+            if(algorithmSelection === "selectionSort") {
+                gen = await filestobTree(this.files, treeOrder)
+            } else if(algorithmSelection === "mergeSort") {
+                gen = await filestobTree(this.files, mergeOrder)
+            } else {
+                console.log("uh oh")
+            }
         } catch (error) {
             document.querySelector("#errorText").innerHTML = `Error parsing metadata: ${error.message}`
             return
@@ -118,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelector("#leftButton").disabled = true
             document.querySelector("#rightButton").disabled = true
             console.log(finalState)
-            for (let songandFile of bTreetoList(finalState)) {
+            for (let songandFile of finalState) {
                 let song = songandFile[0]
                 let listElement = document.createElement('li')
                 listElement.innerHTML = song.common.title
@@ -143,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#leftButton").disabled = false
         document.querySelector("#rightButton").disabled = false
         document.querySelector("#upload").disabled = true
+        document.querySelector("#sortingAlgorithm").disabled = true
 
         document.querySelector("#leftButton").addEventListener("click", () => onclick(true))
         document.querySelector("#rightButton").addEventListener("click", () => onclick(false))
