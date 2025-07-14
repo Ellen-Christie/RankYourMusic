@@ -69,7 +69,7 @@ function* treeOrder(toOrder) {
     return bTreetoList(state)
 }
 
-function* mergeOrder(toOrder) {
+function* binaryInsertionOrder(toOrder) {
     function* merge(list1, list2, accumulator) {
         if (list1.length === 0) {
             return [...list2, ...accumulator]
@@ -90,8 +90,8 @@ function* mergeOrder(toOrder) {
         return toOrder
     } else {
         let middleIndex = Math.floor(toOrder.length / 2)
-        let leftList = yield* mergeOrder(toOrder.slice(0, middleIndex))
-        let rightList = yield* mergeOrder(toOrder.slice(middleIndex))
+        let leftList = yield* binaryInsertionOrder(toOrder.slice(0, middleIndex))
+        let rightList = yield* binaryInsertionOrder(toOrder.slice(middleIndex))
         return yield* merge(leftList, rightList, [])
     }
 }
@@ -139,8 +139,8 @@ document.addEventListener("DOMContentLoaded", () => {
             let algorithmSelection = document.querySelector("#sortingAlgorithm").value
             if(algorithmSelection === "selectionSort") {
                 gen = await filestobTree(this.files, treeOrder)
-            } else if(algorithmSelection === "mergeSort") {
-                gen = await filestobTree(this.files, mergeOrder)
+            } else if(algorithmSelection === "binaryInsertionSort") {
+                gen = await filestobTree(this.files, binaryInsertionOrder)
             } else {
                 console.log("uh oh")
             }
