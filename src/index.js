@@ -12,10 +12,41 @@ class bTree {
 }
 
 class localFile {
+    #title
+    #albumArt
+    #album
+    #artist
+    #file
+    static urlMap = new Map()
     constructor(metadata, file) {
-        
+        console.log(metadata)
+        this.#title = metadata.common.title
+        this.#albumArt = metadata.common.picture[0]
+        this.#album = metadata.common.album
+        this.#artist = metadata.common.artist
+        this.#file = file
+    }
+    itemView() {
+        function saveandReturnURL(file) {
+            let url = URL.createObjectURL(file)
+            localFile.urlMap.set(file.name, url)
+            return url
+        }
+        let url = localFile.urlMap.has(this.#file.name) ? localFile.urlMap.get(this.#file.name) : saveandReturnURL(this.#file)
+        return `<img src='data:${this.#albumArt.format};base64,${uint8ArrayToBase64(this.#albumArt.data)}'/>
+            <p>${this.#title}</p>
+            <p>${this.#album}</p>
+            <p>${this.#artist}</p>
+            <audio controls>
+                <source src='${url}' type='${this.#file.type}'>
+                The audio stream is not supported. Are you using a supported format?
+            </audio>`
+    }
+    listItem() {
+        return this.#title
     }
 }
+
 function balancebTree(tree) {
     return listtobTree(bTreetoList(tree))
 }
@@ -50,18 +81,18 @@ function listtobTree(list) {
 function* binaryInsertionOrder(toOrder) {
     let state = new bTree(toOrder[0])
     console.log(toOrder)
-    for (let num of toOrder.slice(1)) {
+    for (let toInsert of toOrder.slice(1)) {
         function* insert(tree) {
-            let betterThan = yield [num, tree.entry, state]
+            let betterThan = yield [toInsert, tree.entry]
             if (betterThan === true) {
                 if (tree.left === emptyNode) {
-                    tree.left = new bTree(num)
+                    tree.left = new bTree(toInsert)
                 } else {
                     yield* insert(tree.left)
                 }
             } else {
                 if (tree.right === emptyNode) {
-                    tree.right = new bTree(num)
+                    tree.right = new bTree(toInsert)
                 } else {
                     yield* insert(tree.right)
                 }
@@ -74,20 +105,19 @@ function* binaryInsertionOrder(toOrder) {
     return bTreetoList(state)
 }
 
-function* mergOrder(toOrder) {
+function* mergeOrder(toOrder) {
     function* merge(list1, list2, accumulator) {
         if (list1.length === 0) {
-            return [...list2, ...accumulator]
+            return [...accumulator, ...list2]
         } else if (list2.length === 0) {
-            return [...list1, ...accumulator]
+            return [...accumulator, ...list1]
         } else {
-            let element1 = list1[0]
-            let element2 = list2[0]
-            let leftBetterThanRight = yield [element1, element2]
+            let [x, y] = [list1[0], list2[0]]
+            let leftBetterThanRight = yield [x, y]
             if (leftBetterThanRight) {
-                return yield* merge(list2.slice(1), list1, [...accumulator, element1])
+                return yield* merge(list1.slice(1), list2, [...accumulator, x])
             } else {
-                return yield* merge(list1.slice(1), list2, [...accumulator, element2])
+                return yield* merge(list1, list2.slice(1), [...accumulator, y])
             }
         }
     }
@@ -95,83 +125,41 @@ function* mergOrder(toOrder) {
         return toOrder
     } else {
         let middleIndex = Math.floor(toOrder.length / 2)
-        let leftList = yield* mergOrder(toOrder.slice(0, middleIndex))
-        let rightList = yield* mergOrder(toOrder.slice(middleIndex))
+        let leftList = yield* mergeOrder(toOrder.slice(0, middleIndex))
+        let rightList = yield* mergeOrder(toOrder.slice(middleIndex))
         return yield* merge(leftList, rightList, [])
     }
 }
 
-async function filestobTree(fileList, sortingMethod) {
-        console.log(fileList)
-        let songPromiseList = [...fileList].map(async (file) => {
-            const metadata = await parseBlob(file);
-            return [metadata, file]
-        })
-        const songList = Promise.all(songPromiseList)
-        console.log(songList)
-        return sortingMethod(await songList)
-    }
-
-let urlList = []
-function musicBoxTemplate(songandFile) {
-    let song = songandFile[0]
-    let file = songandFile[1]
-    let url = URL.createObjectURL(file)
-    urlList.push(url)
-    return `<img src='data:${song.common.picture[0].format};base64,${uint8ArrayToBase64(song.common.picture[0].data)}'/>
-        <p>${song.common.title}</p>
-        <p>${song.common.album}</p>
-        <p>${song.common.artist}</p>
-        <audio controls>
-            <source src='${url}' type='${file.type}'>
-            The audio stream is not supported. Are you using a supported format?
-        </audio>`
+async function fileListtoSongObjects(fileList) {
+    console.log(fileList)
+    let songList = [...fileList].map(async (file) => {
+        let metadata = await parseBlob(file)
+        return new localFile(metadata, file)
+    })
+    return Promise.all(songList)
 }
 
 
 document.addEventListener("DOMContentLoaded", () => {
-    
 
-    document.querySelector("#upload").addEventListener("change", async function() {
-        document.querySelector("#errorText").innerHTML = ""
-        if (!this.files || [...this.files].length <= 2) {
-            document.querySelector("#errorText").innerHTML = "Please select more than 2 files to order."
-            return
-        }
-
-        let gen
-        try {
-            let algorithmSelection = document.querySelector("#sortingAlgorithm").value
-            if(algorithmSelection === "selectionSort") {
-                gen = await filestobTree(this.files, binaryInsertionOrder)
-            } else if(algorithmSelection === "binaryInsertionSort") {
-                gen = await filestobTree(this.files, mergOrder)
-            } else {
-                console.log("uh oh")
-            }
-        } catch (error) {
-            document.querySelector("#errorText").innerHTML = `Error parsing metadata: ${error.message}`
-            return
-        }
+    function main(gen) {
         let genResult = gen.next()
-        document.querySelector("#left").innerHTML = musicBoxTemplate(genResult.value[0])
-        document.querySelector("#right").innerHTML = musicBoxTemplate(genResult.value[1])
+        let [x, y] = genResult.value
+        document.querySelector("#left").innerHTML = x.itemView()
+        document.querySelector("#right").innerHTML = y.itemView()
 
         function onFinish(finalState) {
             document.querySelector("#leftButton").disabled = true
             document.querySelector("#rightButton").disabled = true
             console.log(finalState)
-            for (let songandFile of finalState) {
-                let song = songandFile[0]
+            for (let item of finalState) {
                 let listElement = document.createElement('li')
-                listElement.innerHTML = song.common.title
+                listElement.innerHTML = item.listItem()
                 document.querySelector('#results').appendChild(listElement)
             }
         }
         function onclick(betterThan) {
-            for (let url of urlList) {
-                URL.revokeObjectURL(url)
-            }
             genResult = gen.next(betterThan)
             if (genResult.done) {
                 console.log(genResult)
@@ -179,9 +167,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 onFinish(genResult.value)
                 return
             }
-            let [x, y, state] = genResult.value
-            document.querySelector("#left").innerHTML = musicBoxTemplate(x)
-            document.querySelector("#right").innerHTML = musicBoxTemplate(y)
+            let [x, y] = genResult.value
+            document.querySelector("#left").innerHTML = x.itemView()
+            document.querySelector("#right").innerHTML = y.itemView()
         }
         document.querySelector("#leftButton").disabled = false
         document.querySelector("#rightButton").disabled = false
@@ -190,6 +178,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelector("#leftButton").addEventListener("click", () => onclick(true))
         document.querySelector("#rightButton").addEventListener("click", () => onclick(false))
-    }, false)
+    }
 
+    document.querySelector("#upload").addEventListener("change", async function () {
+        document.querySelector("#errorText").innerHTML = ""
+        if (!this.files || [...this.files].length <= 2) {
+            document.querySelector("#errorText").innerHTML = "Please select more than 2 files to order."
+            return
+        } else {
+            try {
+                let songList = await fileListtoSongObjects(this.files)
+                console.log(songList)
+                let algorithmSelection = document.querySelector("#sortingAlgorithm").value
+                if (algorithmSelection === "binaryInsertionSort") {
+                    main(binaryInsertionOrder(songList))
+                } else if (algorithmSelection === "mergeSort") {
+                    main(mergeOrder(songList))
+                } else {
+                    console.log("uh oh")
+                }
+            }
+            catch (error) {
+                console.error(error)
+                document.querySelector("#errorText").innerHTML = `${error}`
+                return
+            }
+        }
+    }, false)
 })
