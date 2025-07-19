@@ -105,30 +105,41 @@ function* binaryInsertionOrder(toOrder) {
     return bTreetoList(state)
 }
 
+
 function* mergeOrder(toOrder) {
-    function* merge(list1, list2, accumulator) {
-        if (list1.length === 0) {
-            return [...accumulator, ...list2]
-        } else if (list2.length === 0) {
-            return [...accumulator, ...list1]
-        } else {
-            let [x, y] = [list1[0], list2[0]]
-            let leftBetterThanRight = yield [x, y]
-            if (leftBetterThanRight) {
-                return yield* merge(list1.slice(1), list2, [...accumulator, x])
+    function* merge(array, low, mid, high) {
+        let copy = [...array]
+        let leftListIndex = low
+        let rightListIndex = mid + 1
+        for (let index = low; index <= high; index++) {
+            if (leftListIndex > mid) {
+                array[index] = copy[rightListIndex]
+                rightListIndex++
+            }
+            else if (rightListIndex > high) {
+                array[index] = copy[leftListIndex]
+                leftListIndex++
             } else {
-                return yield* merge(list1, list2.slice(1), [...accumulator, y])
+                let [x, y] = [copy[leftListIndex], copy[rightListIndex]]
+                let leftBetterThanRight = yield [x, y]
+                if (leftBetterThanRight) {
+                    array[index] = x
+                    leftListIndex++
+                } else {
+                    array[index] = y
+                    rightListIndex++
+                }
             }
         }
     }
-    if (toOrder.length <= 1) {
-        return toOrder
-    } else {
-        let middleIndex = Math.floor(toOrder.length / 2)
-        let leftList = yield* mergeOrder(toOrder.slice(0, middleIndex))
-        let rightList = yield* mergeOrder(toOrder.slice(middleIndex))
-        return yield* merge(leftList, rightList, [])
+    let listLength = toOrder.length
+    for (let width = 1; width < listLength; width = width * 2) {
+        for (let i = 0; i < (listLength - width); i += width * 2) {
+            yield* merge(toOrder, i, i + width - 1, Math.min(i + (width * 2) - 1, listLength - 1))
+        }
     }
+    console.log(toOrder)
+    return toOrder
 }
 
 async function fileListtoSongObjects(fileList) {
