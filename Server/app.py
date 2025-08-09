@@ -1,6 +1,6 @@
 from flask import Flask, Response, make_response, request, abort, jsonify
 from flask_cors import CORS
-from secret_stuff import DEVELOPER_KEY
+
 import os
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
@@ -15,7 +15,7 @@ api_version = "v3"
 
 
 youtube = googleapiclient.discovery.build(
-    api_service_name, api_version, developerKey = DEVELOPER_KEY)
+    api_service_name, api_version, developerKey = os.environ["YOUTUBE_API_KEY"])
 
 @app.route("/getplaylist", methods=["GET"])
 def getplaylistitems():
