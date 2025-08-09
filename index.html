@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <script src="./dist/main.js"></script>
     <style>
         .flex-container {
-        display: flex;
-        background-color: White;
+            display: flex;
+            background-color: White;
         }
 
-        .flex-container > div {
-        background-color: #f1f1f1;
-        margin: 10px;
-        padding: 20px;
-        font-size: 20px;
+        .flex-container>div {
+            background-color: #f1f1f1;
+            margin: 10px;
+            padding: 20px;
+            font-size: 20px;
         }
-        img {max-width:100%;}
+
+        img {
+            max-width: 100%;
+        }
     </style>
     <meta charset="UTF-8" />
     <title>Rank Your Music</title>
 </head>
+
 <body>
     <h1 text-align='center'>Which song is better?</h1>
     <div class='flex-container'>
@@ -37,10 +42,15 @@
             <option value="binaryInsertionSort">Binary Insertion Sort</option>
             <option value="mergeSort">Merge Sort</option>
         </select>
+        <br>
         <input type="file" id="upload" multiple />
+        <label for="playlistUrl">Youtube Playlist URL:</label>
+        <input type="text" id="playlistUrl" name="playlistUrl">
+        <input type="submit" id="playlistUrlButton" value="Submit">
         <p style='color:red' id='errorText'></p>
         <ol id='results'>
         </ol>
     </div>
 </body>
+
 </html>
