@@ -118,17 +118,6 @@ function* mergeOrder(toOrder) {
     return toOrder
 }
 
-async function fileListtoSongObjects(fileList) {
-    console.log(fileList)
-    //The spread is to turn the filelist into a list. Because it isn't. Because historical reasons.
-    //I love that this language has 20+ years of technical debt 🤩.
-    let songList = [...fileList].map(async (file) => {
-        let metadata = await parseBlob(file)
-        return new localFile(metadata, file)
-    })
-    return Promise.all(songList)
-}
-
 
 
 function createGen(songList) {
@@ -182,23 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector("#rightButton").addEventListener("click", () => onclick(false))
     }
 
-    document.querySelector("#upload").addEventListener("change", async function () {
-        document.querySelector("#errorText").innerHTML = ""
-        if (!this.files || [...this.files].length <= 2) {
-            document.querySelector("#errorText").innerHTML = "Please select more than 2 files to order."
-            return
-        } else {
-            try {
-                let songList = await fileListtoSongObjects(this.files)
-                main(createGen(songList))
-            }
-            catch (error) {
-                console.error(error)
-                document.querySelector("#errorText").innerHTML = `${error}`
-                return
-            }
-        }
-    }, false)
     async function youtubePlaylist() {
         async function playlistURLtoSongObjects(playlistURL) {
             let params = new URLSearchParams()
