@@ -1,6 +1,3 @@
-import { parseBlob } from 'music-metadata'
-import { uint8ArrayToBase64 } from 'uint8array-extras'
-
 const emptyNode = Symbol("emptyNode");
 
 class bTree {
@@ -8,42 +5,6 @@ class bTree {
         this.entry = entry;
         this.left = left;
         this.right = right;
-    }
-}
-
-class localFile {
-    #title
-    #albumArt
-    #album
-    #artist
-    #file
-    static urlMap = new Map()
-    constructor(metadata, file) {
-        console.log(metadata)
-        this.#title = metadata.common.title
-        this.#albumArt = metadata.common.picture[0]
-        this.#album = metadata.common.album
-        this.#artist = metadata.common.artist
-        this.#file = file
-    }
-    itemView() {
-        function saveandReturnURL(file) {
-            let url = URL.createObjectURL(file)
-            localFile.urlMap.set(file.name, url)
-            return url
-        }
-        let url = localFile.urlMap.has(this.#file.name) ? localFile.urlMap.get(this.#file.name) : saveandReturnURL(this.#file)
-        return `<img src='data:${this.#albumArt.format};base64,${uint8ArrayToBase64(this.#albumArt.data)}'/>
-            <p>${this.#title}</p>
-            <p>${this.#album}</p>
-            <p>${this.#artist}</p>
-            <audio controls>
-                <source src='${url}' type='${this.#file.type}'>
-                The audio stream is not supported. Are you using a supported format?
-            </audio>`
-    }
-    listItem() {
-        return this.#title
     }
 }
 
