@@ -215,7 +215,6 @@ function* mergeOrder(toOrder, state) {
     function serialize(array, i, mid, high, width, copy, index, leftIndex, rightIndex) {
         return () => {
             let orderObject = new serializableMergeOrderState(array, i, mid, high, width, copy, index, leftIndex, rightIndex)
-            console.log(orderObject)
             return JSON.stringify(orderObject)
         }
     }
@@ -234,8 +233,6 @@ function* mergeOrder(toOrder, state) {
                 leftListIndex++
             } else {
                 let [x, y] = [copy[leftListIndex], copy[rightListIndex]]
-                console.log(x)
-                console.log(y)
                 let leftBetterThanRight = yield new orderResponse(x, y, serialize(array, low, mid, high, width, copy, index, leftListIndex, rightListIndex))
                 if (leftBetterThanRight) {
                     array[index] = x
@@ -254,7 +251,6 @@ function* mergeOrder(toOrder, state) {
                 yield* merge(toOrder, i, i + width - 1, Math.min(i + (width * 2) - 1, listLength - 1), width)
             }
         }
-        console.log(toOrder)
         return toOrder
     } else {
         let { array, i, mid, high, width, copy, index, leftIndex, rightIndex } = state
@@ -379,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelector("#errorText").innerHTML = ""
         let input = document.querySelector("#playlistUrl").value
-        let urlMatch = input.match(/^https?:\/\/(?:www\.)?youtube\.com\/playlist\?list=(?:(.+)&si=.+)|(.+)/)
+        let urlMatch = input.match(/^https?:\/\/(?:www\.)?youtube\.com\/playlist\?list=(?:(?:(.+)&si=.+)|(.+))/)
         if (urlMatch === null) {
             throw "Please input a valid youtube playlist URL. (NOT the url of a video in the playlist)"
         } else {

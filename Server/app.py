@@ -32,12 +32,9 @@ def getplaylistitems():
                 fields="nextPageToken, items(contentDetails/videoId,snippet/title)")
             the_response = the_request.execute()
         except HttpError as err:
-            print('yeah we error')
-            print(err)
             errargs = err.args[0]
-            print(errargs)
             errcode = errargs['status']
-            print(errcode)
+
             if (errcode == '404' or errcode == '400'):
                 the_response = jsonify({'err':'Playlist Not Found. Is the URL correct?'})
                 the_response.status = 400
@@ -55,7 +52,6 @@ def getplaylistitems():
             while "nextPageToken" in the_response:
                 the_request = youtube.playlistItems().list_next(the_request, the_response)
                 the_response = the_request.execute()
-                print(the_response)
                 list_of_videos = list_of_videos + items_to_video_objects(the_response["items"])
             return list_of_videos
 
