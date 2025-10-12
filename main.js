@@ -1,3 +1,5 @@
+// Binary tree datatype, which is used for the "insetion sort" implementation
+// Not efficient but efficiency doesn't matter here.
 const emptyNode = Symbol("emptyNode");
 
 class bTree {
@@ -8,21 +10,6 @@ class bTree {
     }
 }
 
-class youtubeVideo {
-    #title
-    #videoId
-    constructor(title, videoId) {
-        this.#title = title
-        this.#videoId = videoId
-    }
-    itemView() {
-        return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${this.#videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-         <p>${this.#title}</p>`
-    }
-    listItem() {
-        return this.#title
-    }
-}
 function balancebTree(tree) {
     return listtobTree(bTreetoList(tree))
 }
@@ -54,12 +41,154 @@ function listtobTree(list) {
     return partialTree(list, list.length)[0];
 }
 
-function* binaryInsertionOrder(toOrder) {
-    let state = new bTree(toOrder[0])
+// Base/abstract classes
+// These classes are meant to be inherited from, not used directly.
+// These are mainly here to make the api of certain types of data clear.
+
+class abstractSong {
+    constructor() {
+        // *How* a song is constructed is decided by the implementor
+    }
+    serializable() {
+        // This should return the corresponding serializableSong
+        return
+    }
+    itemView() {
+        // This should return a string of html
+        // When rendered it should show an embed of the song and corresponding information
+        return
+    }
+    listItem() {
+        // This should return a string, that displays the song name and (usually) artist
+        // This is then used when the ranked list of songs is shown to the user
+        return
+    }
+
+}
+class serializableSong {
+    constructor(type) {
+        this.type = type
+    }
+}
+
+class youtubeVideo {
+    #title
+    #videoId
+    constructor(title, videoId) {
+        this.#title = title
+        this.#videoId = videoId
+    }
+    serializable() {
+        return new serializableYoutubeVideo(this.#title, this.#videoId)
+    }
+    itemView() {
+        return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${this.#videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+         <p>${this.#title}</p>`
+    }
+    listItem() {
+        return this.#title
+    }
+}
+
+class serializableYoutubeVideo extends serializableSong {
+    constructor(title, videoId) {
+        super("youtubeVideo")
+        this.title = title
+        this.videoId = videoId
+    }
+}
+
+function deserialiseSong(pSong) {
+    switch (pSong.type) {
+        case "youtubeVideo":
+            return new youtubeVideo(pSong.title, pSong.videoId)
+        default:
+            throw "Unable to deserialize song: Invalid type"
+    }
+}
+
+class orderResponse {
+    constructor(left, right, serialiseResults) {
+        this.left = left
+        this.right = right
+        // This should be a function that, when called, returns a json string containing the state needed to restart the generator"
+        this.serialiseResults = serialiseResults
+    }
+}
+
+class serializableState {
+    constructor(type) {
+        this.type = type
+    }
+}
+
+class serializableBinaryInsertionOrderState extends serializableState {
+    constructor(ordered, songsToOrder) {
+        super("BinaryInsertionOrder")
+        this.ordered = ordered.map((x) => x.serializable())
+        this.songsToOrder = songsToOrder.map((x) => x.serializable())
+        console.log(this.type)
+    }
+    static deserialize(serializedOrder) {
+        if (serializedOrder.songsToOrder.length == 0) {
+            throw "Error: File contains no songs to sort"
+        } else {
+            return binaryInsertionOrder(serializedOrder.songsToOrder.map(deserialiseSong),
+                serializedOrder.ordered.map(deserialiseSong))
+        }
+    }
+}
+
+class serializableMergeOrderState extends serializableState {
+    constructor(array, low, mid, high, width, copy, index, leftIndex, rightIndex) {
+        super("MergeOrderState")
+        this.array = array.map((x) => x.serializable())
+        this.low = low
+        this.mid = mid
+        this.high = high
+        this.width = width
+        this.copy = copy.map((x) => x.serializable())
+        this.index = index
+        this.leftIndex = leftIndex
+        this.rightIndex = rightIndex
+    }
+    static deserialize(serializedOrder) {
+        serializedOrder.array = serializedOrder.array.map(deserialiseSong)
+        serializedOrder.copy = serializedOrder.copy.map(deserialiseSong) 
+        return mergeOrder(serializedOrder.array, serializedOrder)
+    }
+}
+
+function deserilializeGen(order) {
+    switch (order.type) {
+        case "BinaryInsertionOrder":
+            return serializableBinaryInsertionOrderState.deserialize(order)
+        case "MergeOrderState":
+            return serializableMergeOrderState.deserialize(order)
+        default:
+            throw "Unable to deserialize order: Invalid type"
+    }
+}
+
+function* binaryInsertionOrder(toOrder, ordered) {
+    function serialize(stateTree, toOrderIndex) {
+        let stateList = bTreetoList(stateTree)
+        let restToOrder = toOrder.slice(toOrderIndex)
+        return () => {
+            let orderObject = new serializableBinaryInsertionOrderState(stateList, restToOrder)
+            console.log(orderObject)
+            return JSON.stringify(orderObject)
+        }
+    }
+    let state = ordered ? listtobTree(ordered) : new bTree(toOrder[0])
+    if (!ordered) {
+        toOrder = toOrder.slice(1)
+    }
     console.log(toOrder)
-    for (let toInsert of toOrder.slice(1)) {
+    for (let toInsertIndex in toOrder) {
+        let toInsert = toOrder[toInsertIndex]
         function* insert(tree) {
-            let betterThan = yield [toInsert, tree.entry]
+            let betterThan = yield new orderResponse(toInsert, tree.entry, serialize(state, toInsertIndex))
             if (betterThan === true) {
                 if (tree.left === emptyNode) {
                     tree.left = new bTree(toInsert)
@@ -82,12 +211,20 @@ function* binaryInsertionOrder(toOrder) {
 }
 
 
-function* mergeOrder(toOrder) {
-    function* merge(array, low, mid, high) {
-        let copy = [...array]
-        let leftListIndex = low
-        let rightListIndex = mid + 1
-        for (let index = low; index <= high; index++) {
+function* mergeOrder(toOrder, state) {
+    function serialize(array, i, mid, high, width, copy, index, leftIndex, rightIndex) {
+        return () => {
+            let orderObject = new serializableMergeOrderState(array, i, mid, high, width, copy, index, leftIndex, rightIndex)
+            console.log(orderObject)
+            return JSON.stringify(orderObject)
+        }
+    }
+    function* merge(array, low, mid, high, width, copy2, index2, leftIndex, rightIndex) {
+        let copy = copy2 ? copy2 : [...array]
+        let leftListIndex = leftIndex ? leftIndex : low
+        let rightListIndex = rightIndex ? rightIndex : mid + 1
+        let index = index2 ? index2 : low
+        for (index; index <= high; index++) {
             if (leftListIndex > mid) {
                 array[index] = copy[rightListIndex]
                 rightListIndex++
@@ -97,7 +234,9 @@ function* mergeOrder(toOrder) {
                 leftListIndex++
             } else {
                 let [x, y] = [copy[leftListIndex], copy[rightListIndex]]
-                let leftBetterThanRight = yield [x, y]
+                console.log(x)
+                console.log(y)
+                let leftBetterThanRight = yield new orderResponse(x, y, serialize(array, low, mid, high, width, copy, index, leftListIndex, rightListIndex))
                 if (leftBetterThanRight) {
                     array[index] = x
                     leftListIndex++
@@ -108,14 +247,32 @@ function* mergeOrder(toOrder) {
             }
         }
     }
-    let listLength = toOrder.length
-    for (let width = 1; width < listLength; width = width * 2) {
-        for (let i = 0; i < (listLength - width); i += width * 2) {
-            yield* merge(toOrder, i, i + width - 1, Math.min(i + (width * 2) - 1, listLength - 1))
+    if (!state) {
+        let listLength = toOrder.length
+        for (let width = 1; width < listLength; width = width * 2) {
+            for (let i = 0; i < (listLength - width); i += width * 2) {
+                yield* merge(toOrder, i, i + width - 1, Math.min(i + (width * 2) - 1, listLength - 1), width)
+            }
         }
+        console.log(toOrder)
+        return toOrder
+    } else {
+        let { array, i, mid, high, width, copy, index, leftIndex, rightIndex } = state
+        yield* merge(array, i, mid, high, width, copy, index, leftIndex, rightIndex)
+        let listLength = array.length
+        i = i + width * 2
+        for (i; i < (listLength - width); i += width * 2) {
+            yield* merge(array, i, i + width - 1, Math.min(i + (width * 2) - 1, listLength - 1), width)
+        }
+        width = width * 2
+        for (width; width < listLength; width = width * 2) {
+            for (let i = 0; i < (listLength - width); i += width * 2) {
+                yield* merge(array, i, i + width - 1, Math.min(i + (width * 2) - 1, listLength - 1), width)
+            }
+        }
+        console.log(array)
+        return array
     }
-    console.log(toOrder)
-    return toOrder
 }
 
 
@@ -129,20 +286,50 @@ function createGen(songList) {
 }
 document.addEventListener("DOMContentLoaded", () => {
     function main(gen) {
+        function save(jsonString) {
+            console.log(jsonString)
+            const blob = new Blob([jsonString], { type: "text/json" })
+            const blobUrl = URL.createObjectURL(blob)
+            const link = document.createElement("a")
+
+            link.href = blobUrl
+            link.download = "rank.json"
+            document.body.appendChild(link)
+
+            link.dispatchEvent(
+                new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                })
+            )
+            document.body.removeChild(link)
+        }
         function onclick(betterThan) {
+
+            // We do a deep copy of the save button element to remove it's event listeners
+            // The alternitive is passing lambdas around, which, considering how the code is structured, would be a pain.
+            element = document.querySelector('#serialize')
+            newElement = element.cloneNode(true)
+            element.parentNode.replaceChild(newElement, element)
+
             genResult = gen.next(betterThan)
             if (genResult.done) {
                 onFinish(genResult.value)
                 return
             } else {
-                let [x, y] = genResult.value
-                document.querySelector("#left").innerHTML = x.itemView()
-                document.querySelector("#right").innerHTML = y.itemView()
+                let { left, right, serialiseResults } = genResult.value
+
+                document.querySelector('#serialize').addEventListener("click", () => save(serialiseResults()))
+                document.querySelector("#left").innerHTML = left.itemView()
+                document.querySelector("#right").innerHTML = right.itemView()
             }
         }
+
         function onFinish(finalState) {
             document.querySelector("#leftButton").disabled = true
             document.querySelector("#rightButton").disabled = true
+            document.querySelector('#serialize').disabled = true
 
             for (let item of finalState) {
                 let listElement = document.createElement('li')
@@ -150,22 +337,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.querySelector('#results').appendChild(listElement)
             }
 
-            let [x, y] = genResult.value
-            document.querySelector("#left").innerHTML = x.itemView()
-            document.querySelector("#right").innerHTML = y.itemView()
+            let { left, right, serialiseResults } = genResult.value
+            document.querySelector("#left").innerHTML = left.itemView()
+            document.querySelector("#right").innerHTML = right.itemView()
         }
 
         document.querySelector("#leftButton").disabled = false
         document.querySelector("#rightButton").disabled = false
-        document.querySelector("#upload").disabled = true
+        document.querySelector('#serialize').disabled = false
         document.querySelector("#sortingAlgorithm").disabled = true
         document.querySelector("#playlistUrl").disabled = true
         document.querySelector("#playlistUrlButton").disabled = true
-
+        document.querySelector("#deserialize").disabled = true
+        console.log(gen)
         let genResult = gen.next()
-        let [x, y] = genResult.value
-        document.querySelector("#left").innerHTML = x.itemView()
-        document.querySelector("#right").innerHTML = y.itemView()
+        console.log(genResult)
+        console.log(genResult.value)
+        let { left, right, serialiseResults } = genResult.value
+        document.querySelector('#serialize').addEventListener("click", () => save(serialiseResults()))
+        document.querySelector("#left").innerHTML = left.itemView()
+        document.querySelector("#right").innerHTML = right.itemView()
 
         document.querySelector("#leftButton").addEventListener("click", () => onclick(true))
         document.querySelector("#rightButton").addEventListener("click", () => onclick(false))
@@ -177,7 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
             params.append("playlistID", playlistURL)
             let playlist_request = fetch(`http://127.0.0.1:5000/getplaylist?${params}`)
             let playlist_response = await playlist_request
-            console.log(playlist_response)
+
             if (playlist_response.ok == false) {
                 throw new Error((await playlist_response.json()).err)
             }
@@ -185,23 +376,30 @@ document.addEventListener("DOMContentLoaded", () => {
             let songs = playlist.map((item) => { return new youtubeVideo(item.title, item.videoId) })
             return Promise.all(songs)
         }
+
         document.querySelector("#errorText").innerHTML = ""
         let input = document.querySelector("#playlistUrl").value
-        let urlMatch = input.match(/^http?s:\/\/www\.youtube\.com\/playlist\?list=(.+)/)
+        let urlMatch = input.match(/^https?:\/\/(?:www\.)?youtube\.com\/playlist\?list=(?:(.+)&si=.+)|(.+)/)
         if (urlMatch === null) {
-            document.querySelector("#errorText").innerHTML = "Please input a valid youtube playlist URL. (NOT the url of a video in the playlist)"
-            return
+            throw "Please input a valid youtube playlist URL. (NOT the url of a video in the playlist)"
         } else {
-            let songlist
-            try {
-                songlist = await playlistURLtoSongObjects(urlMatch[1])
-            } catch (error) {
-                console.error(error)
-                document.querySelector("#errorText").innerHTML = `${error}`
-                return
-            }
+            let songlist = await playlistURLtoSongObjects(urlMatch[1])
             main(createGen(songlist))
         }
+    }
+
+    async function deserialize() {
+        console.log(this.files)
+        file = this.files[0]
+        console.log(file)
+        jsonString = await file.text()
+        console.log(jsonString)
+        order = await JSON.parse(jsonString)
+        console.log(order)
+        gen = deserilializeGen(order)
+        console.log(gen)
+        main(gen)
+
     }
     document.querySelector("#playlistUrl").addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
@@ -209,4 +407,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     })
     document.querySelector("#playlistUrlButton").addEventListener("click", youtubePlaylist)
+    document.querySelector("#deserialize").addEventListener("change", deserialize)
 })
