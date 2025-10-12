@@ -359,9 +359,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function youtubePlaylist() {
-        async function playlistURLtoSongObjects(playlistURL) {
+        async function playlistIDtoSongObjects(playlistID) {
             let params = new URLSearchParams()
-            params.append("playlistID", playlistURL)
+            params.append("playlistID", playlistID)
             let playlist_request = fetch(`http://127.0.0.1:5000/getplaylist?${params}`)
             let playlist_response = await playlist_request
 
@@ -379,7 +379,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (urlMatch === null) {
             throw "Please input a valid youtube playlist URL. (NOT the url of a video in the playlist)"
         } else {
-            let songlist = await playlistURLtoSongObjects(urlMatch[1])
+            const playlistID = urlMatch[1] ? urlMatch[1] : urlMatch[2]
+            let songlist = await playlistIDtoSongObjects(playlistID)
             main(createGen(songlist))
         }
     }
