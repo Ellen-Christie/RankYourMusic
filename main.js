@@ -506,10 +506,10 @@ function* mergeSortGen(toOrder, state) {
     leftIndex,
     rightIndex,
   ) {
-    let copy = copy2 ? copy2 : [...array];
-    let leftListIndex = leftIndex ? leftIndex : low;
-    let rightListIndex = rightIndex ? rightIndex : mid + 1;
-    let index = index2 ? index2 : low;
+    let copy = copy2 ?? [...array];
+    let leftListIndex = leftIndex ?? low;
+    let rightListIndex = rightIndex ?? mid + 1;
+    let index = index2 ?? low;
     for (index; index <= high; index++) {
       if (leftListIndex > mid) {
         array[index] = copy[rightListIndex];
