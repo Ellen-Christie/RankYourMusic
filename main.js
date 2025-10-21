@@ -748,7 +748,7 @@ async function urlDispatch() {
    * @returns {youtubeVideo}
    */
   async function youtubePlaylistIDtoSongObjects(playlistID) {
-    return await fetchFromServer("getplaylist", "playlistID", playlistID);
+    return fetchFromServer("getplaylist", "playlistID", playlistID);
   }
   /**
    *
@@ -756,7 +756,7 @@ async function urlDispatch() {
    * @returns {bandcampTrack}
    */
   async function bandcampAlbumURLtoSongObjects(albumURL) {
-    return await fetchFromServer("getbandcampalbum", "albumURL", albumURL);
+    return fetchFromServer("getbandcampalbum", "albumURL", albumURL);
   }
 
   const input = document.querySelector("#playlistUrl").value;
@@ -805,7 +805,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("click", async () => {
       document.querySelector("#errorText").innerHTML = "";
       try {
-        const songs = await urlDispatch();
+        const songs = urlDispatch();
         console.log(songs);
         const gen = createGen(songs);
         console.log(gen);
@@ -821,7 +821,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("change", async function () {
       try {
         const file = this.files[0];
-        const gen = await deserialize(file);
+        const gen = deserialize(file);
         main(gen);
       } catch (err) {
         console.log(err);
