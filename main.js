@@ -1,12 +1,16 @@
 "use strict";
 // Global Vars
-let BACKEND_URL = "http://127.0.0.1:5000";
+
+/** The URL for the server-side. Replace when deploying to production. */
+const BACKEND_URL = "http://127.0.0.1:5000";
 // Datatypes
 
 // Binary tree datatype, which is used for the "insetion sort" implementation
-// Not efficient but efficiency doesn't matter here.
+// Not efficient but efficiency doesn't matter here
+
 const emptyNode = Symbol("emptyNode");
 
+/** @typedef {emptyNode|bTree} BinaryTree */
 class bTree {
   constructor(entry, left = emptyNode, right = emptyNode) {
     this.entry = entry;
@@ -15,9 +19,20 @@ class bTree {
   }
 }
 
+/**
+ * Takes an unbalanced BinaryTree an equivilent balanced binary tree.
+ * @param {BinaryTree} tree
+ * @returns {BinaryTree}
+ */
 function balancebTree(tree) {
   return listtobTree(bTreetoList(tree));
 }
+
+/**
+ * Converts a BinaryTree to an ordered Array
+ * @param {BinaryTree} tree
+ * @returns {Array}
+ */
 function bTreetoList(tree) {
   if (tree === emptyNode) {
     return [];
@@ -25,7 +40,11 @@ function bTreetoList(tree) {
     return [...bTreetoList(tree.left), tree.entry, ...bTreetoList(tree.right)];
   }
 }
-//Converts ordered list into a *balanced* bTree
+/**
+ * Converts ordered Array into a *balanced* BinaryTree
+ * @param {Array} list
+ * @return {BinaryTree}
+ */
 function listtobTree(list) {
   function partialTree(elts, n) {
     if (n === 0) {
@@ -50,25 +69,45 @@ function listtobTree(list) {
 // These classes are meant to be inherited from, not used directly.
 // These are mainly here to make the api of certain types of data clear.
 
-class abstractSong {
-  constructor() {
-    // *How* a song is constructed is decided by the implementor
-  }
+/** The Interface for song objects.
+ *  @interface
+ */
+class AbstractSong {
+  /**
+   * @param {serializableSong} serialized
+   */
+  constructor(serialized) {}
+
+  /**
+   * This returns the corresponding serializableSong
+   * @returns {serializableSong}
+   */
   serializable() {
-    // This should return the corresponding serializableSong
     return;
   }
+  /**
+   * Returns a String of html
+   * When rendered it shows an embed of the song and corresponding information
+   * @returns {String}
+   */
   itemView() {
-    // This should return a string of html
-    // When rendered it should show an embed of the song and corresponding information
     return;
   }
+  /**
+   * Returns a String that displays the song name and (usually) artist
+   * This is then used when the ranked list of songs is shown to the user
+   * @returns {String}
+   */
   listItem() {
-    // This should return a string, that displays the song name and (usually) artist
-    // This is then used when the ranked list of songs is shown to the user
     return;
   }
 }
+
+/**
+ * The Super Class to all Serialized representations of songs.
+ * A serialized song is recieved either fom the backend sever or from the user's computer.
+ * The serializableSong#type parameter allows the deserialiseSong function to dispatch based on type.
+ */
 class serializableSong {
   constructor(type) {
     this.type = type;
@@ -76,27 +115,48 @@ class serializableSong {
 }
 
 // Song Classes
-class youtubeVideo extends abstractSong {
+class youtubeVideo extends AbstractSong {
   #title;
   #videoId;
+  /**
+   * Deserializes a serializableYoutubeVideo
+   * @param {serializableYoutubeVideo} param0
+   */
   constructor({ title, videoId }) {
     super();
     this.#title = title;
     this.#videoId = videoId;
   }
+  /**
+   * Returns a serializableYoutubeVideo
+   * @returns {serializableYoutubeVideo}
+   */
   serializable() {
     return new serializableYoutubeVideo(this.#title, this.#videoId);
   }
+  /**
+   *
+   * @returns {String}
+   */
   itemView() {
     return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${this.#videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
          <p>${this.#title}</p>`;
   }
+  /**
+   *
+   * @returns {String}
+   */
   listItem() {
     return this.#title;
   }
 }
 
 class serializableYoutubeVideo extends serializableSong {
+  /**
+   *
+   * @param {String} title
+   * @param {String} videoId
+   */
   constructor(title, videoId) {
     super("youtubeVideo");
     this.title = title;
@@ -104,13 +164,17 @@ class serializableYoutubeVideo extends serializableSong {
   }
 }
 
-class bandcampTrack extends abstractSong {
+class bandcampTrack extends AbstractSong {
   #title;
   #albumTitle;
   #artist;
   #albumID;
   #trackID;
   #albumArt;
+  /**
+   *
+   * @param {serializableBandcampTrack} param0
+   */
   constructor({ title, albumTitle, artist, albumID, trackID, albumArt }) {
     super();
     this.#title = title;
@@ -120,6 +184,10 @@ class bandcampTrack extends abstractSong {
     this.#trackID = trackID;
     this.#albumArt = albumArt;
   }
+  /**
+   *
+   * @returns {serializableBandcampTrack}
+   */
   serializable() {
     return new serializableBandcampTrack({
       title: this.#title,
@@ -130,6 +198,10 @@ class bandcampTrack extends abstractSong {
       albumArt: this.#albumArt,
     });
   }
+  /**
+   *
+   * @returns {String}
+   */
   itemView() {
     return `<img src=${this.#albumArt}>
     <div>${this.#title}</div>
@@ -137,12 +209,26 @@ class bandcampTrack extends abstractSong {
     <div>${this.#artist}</div>
     <iframe style="border: 0; width: 100%; height: 42px;" src="https://bandcamp.com/EmbeddedPlayer/album=${this.#albumID}/size=small/bgcol=ffffff/linkcol=0687f5/artwork=none/track=${this.#trackID}/transparent=true/" seamless></iframe>`;
   }
+  /**
+   *
+   * @returns {String}
+   */
   listItem() {
     return `${this.#title} - ${this.#artist}`;
   }
 }
+
 class serializableBandcampTrack extends serializableSong {
-  constructor({ title, albumTitle, artist, albumID, trackID, albumArt }) {
+  /**
+   *
+   * @param {String} title
+   * @param {String} albumTitle
+   * @param {String} artist
+   * @param {Number} albumID
+   * @param {Number} trackID
+   * @param {String} albumArt
+   */
+  constructor(title, albumTitle, artist, albumID, trackID, albumArt) {
     super("bandcampTrack");
     this.title = title;
     this.albumTitle = albumTitle;
@@ -152,6 +238,11 @@ class serializableBandcampTrack extends serializableSong {
     this.albumArt = albumArt;
   }
 }
+/**
+ * Converst a serializable representation of an abstractSong into said abstractSong.
+ * @param {serializableSong} pSong
+ * @returns {AbstractSong}
+ */
 function deserialiseSong(pSong) {
   switch (pSong.type) {
     case "youtubeVideo":
@@ -163,33 +254,60 @@ function deserialiseSong(pSong) {
   }
 }
 
-class orderResponse {
+/**
+ * The value yielded by a sortGenerator.
+ */
+class SortGeneratorResponse {
+  /**
+   *
+   * @param {AbstractSong} left
+   * @param {AbstractSong} right
+   * @param {Function} serialiseResults
+   */
   constructor(left, right, serialiseResults) {
     this.left = left;
     this.right = right;
-    // This should be a function that, when called, returns a json string containing the state needed to restart the generator"
+    /** This should be a function that, when called, returns a json string containing the state needed to restart the generator" */
     this.serialiseResults = serialiseResults;
   }
 }
 
-class serializableState {
+/**
+ * A Serializale representation of a SortGenerators state.
+ * We need these so the user can save their progress to disk.
+ */
+class SerializableSortGenState {
+  /**
+   *
+   * @param {string} type
+   */
   constructor(type) {
     this.type = type;
   }
 }
 
-class serializableBinaryInsertionOrderState extends serializableState {
+class serializableBinaryInsertionOrderState extends SerializableSortGenState {
+  /**
+   *
+   * @param {AbstractSong} ordered
+   * @param {AbstractSong} songsToOrder
+   * Length of songsToOrder must be at least 1.
+   */
   constructor(ordered, songsToOrder) {
     super("BinaryInsertionOrder");
     this.ordered = ordered.map((x) => x.serializable());
     this.songsToOrder = songsToOrder.map((x) => x.serializable());
-    console.log(this.type);
   }
+  /**
+   *
+   * @param {SerializableSortGenState} serializedOrder
+   * @returns {Generator}
+   */
   static deserialize(serializedOrder) {
     if (serializedOrder.songsToOrder.length == 0) {
       throw "Error: File contains no songs to sort";
     } else {
-      return binaryInsertionOrder(
+      return binaryInsertionSortGen(
         serializedOrder.songsToOrder.map(deserialiseSong),
         serializedOrder.ordered.map(deserialiseSong),
       );
@@ -197,7 +315,19 @@ class serializableBinaryInsertionOrderState extends serializableState {
   }
 }
 
-class serializableMergeOrderState extends serializableState {
+class serializableMergeOrderState extends SerializableSortGenState {
+  /**
+   *
+   * @param {Array} array
+   * @param {Number} low
+   * @param {Number} mid
+   * @param {Number} high
+   * @param {Number} width
+   * @param {Array} copy
+   * @param {Number} index
+   * @param {Number} leftIndex
+   * @param {Number} rightIndex
+   */
   constructor(
     array,
     low,
@@ -220,13 +350,23 @@ class serializableMergeOrderState extends serializableState {
     this.leftIndex = leftIndex;
     this.rightIndex = rightIndex;
   }
+  /**
+   *
+   * @param {AbstractSong[]} serializedOrder
+   * @returns {Generator}
+   */
   static deserialize(serializedOrder) {
     serializedOrder.array = serializedOrder.array.map(deserialiseSong);
     serializedOrder.copy = serializedOrder.copy.map(deserialiseSong);
-    return mergeOrder(serializedOrder.array, serializedOrder);
+    return mergeSortGen(serializedOrder.array, serializedOrder);
   }
 }
 
+/**
+ * Takes a SerializableSortGenState and returns the equivilent Generator.
+ * @param {SerializableSortGenState} order
+ * @returns {Generator}
+ */
 function deserilializeGen(order) {
   switch (order.type) {
     case "BinaryInsertionOrder":
@@ -238,7 +378,19 @@ function deserilializeGen(order) {
   }
 }
 
-function* binaryInsertionOrder(toOrder, ordered) {
+/**
+ * Returns a SortGenerator that sorts songs via an binary insertion sort algorithm.
+ * @param {AbstractSong[]} toOrder
+ * @param {AbstractSong[]} ordered
+ * @returns {Generator}
+ */
+function* binaryInsertionSortGen(toOrder, ordered) {
+  /**
+   *
+   * @param {BinaryTree} stateTree
+   * @param {Int} toOrderIndex
+   * @returns {function(): string}
+   */
   function serialize(stateTree, toOrderIndex) {
     let stateList = bTreetoList(stateTree);
     let restToOrder = toOrder.slice(toOrderIndex);
@@ -255,11 +407,11 @@ function* binaryInsertionOrder(toOrder, ordered) {
   if (!ordered) {
     toOrder = toOrder.slice(1);
   }
-  console.log(toOrder);
+
   for (let toInsertIndex in toOrder) {
     let toInsert = toOrder[toInsertIndex];
     function* insert(tree) {
-      let betterThan = yield new orderResponse(
+      let betterThan = yield new SortGeneratorResponse(
         toInsert,
         tree.entry,
         serialize(state, toInsertIndex),
@@ -285,7 +437,26 @@ function* binaryInsertionOrder(toOrder, ordered) {
   return bTreetoList(state);
 }
 
-function* mergeOrder(toOrder, state) {
+/**
+ * Returns a SortGenerator that sorts songs via the bottom-up merge sort algorithm.
+ * @param {AbstractSong[]} toOrder
+ * @param {serializableMergeOrderState} state
+ * @returns {Generator}
+ */
+function* mergeSortGen(toOrder, state) {
+  /**
+   *
+   * @param {AbstractSong[]} array
+   * @param {Int} i
+   * @param {Int} mid
+   * @param {Int} high
+   * @param {Int} width
+   * @param {AbstractSong[]} copy
+   * @param {Int} index
+   * @param {Int} leftIndex
+   * @param {Int} rightIndex
+   * @returns {function(): String}
+   */
   function serialize(
     array,
     i,
@@ -312,6 +483,18 @@ function* mergeOrder(toOrder, state) {
       return JSON.stringify(orderObject);
     };
   }
+  /**
+   *
+   * @param {AbstractSong} array
+   * @param {Int} low
+   * @param {Int} mid
+   * @param {Int} high
+   * @param {Int} width
+   * @param {Int} copy2
+   * @param {Int} index2
+   * @param {Int} leftIndex
+   * @param {Int} rightIndex
+   */
   function* merge(
     array,
     low,
@@ -336,7 +519,7 @@ function* mergeOrder(toOrder, state) {
         leftListIndex++;
       } else {
         let [x, y] = [copy[leftListIndex], copy[rightListIndex]];
-        let leftBetterThanRight = yield new orderResponse(
+        let leftBetterThanRight = yield new SortGeneratorResponse(
           x,
           y,
           serialize(
@@ -417,6 +600,11 @@ function* mergeOrder(toOrder, state) {
   }
 }
 
+/**
+ *
+ * @param {AbstractSong[]} songList
+ * @returns {Generator}
+ */
 function createGen(songList) {
   if (songList.length < 2) {
     throw "Error: Need a list of at least 2 songs";
@@ -424,157 +612,186 @@ function createGen(songList) {
   const algorithmSelection = document.querySelector("#sortingAlgorithm").value;
   const gen =
     algorithmSelection === "binaryInsertionSort"
-      ? binaryInsertionOrder(songList)
+      ? binaryInsertionSortGen(songList)
       : algorithmSelection === "mergeSort"
-        ? mergeOrder(songList)
+        ? mergeSortGen(songList)
         : console.error("what");
   return gen;
 }
-document.addEventListener("DOMContentLoaded", () => {
-  function main(gen) {
-    function save(jsonString) {
-      console.log(jsonString);
-      const blob = new Blob([jsonString], { type: "text/json" });
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
 
-      link.href = blobUrl;
-      link.download = "rank.json";
-      document.body.appendChild(link);
+/**
+ * The main function. Handles events from the UI and updates it accordingly.
+ * @param {Generator} gen
+ */
+function main(gen) {
+  /**
+   * Takes a serialized SortGen as a JSON string and prompts the user to save it to disk.
+   * @param {String} jsonString
+   */
+  function save(jsonString) {
+    console.log(jsonString);
+    const blob = new Blob([jsonString], { type: "text/json" });
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
 
-      link.dispatchEvent(
-        new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-        }),
-      );
-      document.body.removeChild(link);
-    }
-    function onclick(betterThan) {
-      // We do a deep copy of the save button element to remove it's event listeners
-      // The alternitive is passing lambdas around, which, considering how the code is structured, would be a pain.
-      let element = document.querySelector("#serialize");
-      let newElement = element.cloneNode(true);
-      element.parentNode.replaceChild(newElement, element);
+    link.href = blobUrl;
+    link.download = "rank.json";
+    document.body.appendChild(link);
 
-      genResult = gen.next(betterThan);
-      if (genResult.done) {
-        onFinish(genResult.value);
-        return;
-      } else {
-        let { left, right, serialiseResults } = genResult.value;
+    link.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
+    document.body.removeChild(link);
+  }
+  /**
+   * Called when a song is selected by the user. "betterThan" is true if the left button is clicked and false if the right button is clicked.
+   * @param {Boolean} betterThan
+   * @returns {undefined}
+   */
+  function onclick(betterThan) {
+    // We do a deep copy of the save button element to remove it's event listeners
+    // The alternative is passing lambdas around, which, considering how the code is structured, would be a pain.
+    let element = document.querySelector("#serialize");
+    let newElement = element.cloneNode(true);
+    element.parentNode.replaceChild(newElement, element);
 
-        document
-          .querySelector("#serialize")
-          .addEventListener("click", () => save(serialiseResults()));
-        document.querySelector("#left").innerHTML = left.itemView();
-        document.querySelector("#right").innerHTML = right.itemView();
-      }
-    }
-
-    function onFinish(finalState) {
-      document.querySelector("#leftButton").disabled = true;
-      document.querySelector("#rightButton").disabled = true;
-      document.querySelector("#serialize").disabled = true;
-
-      for (let item of finalState) {
-        let listElement = document.createElement("li");
-        listElement.innerHTML = item.listItem();
-        document.querySelector("#results").appendChild(listElement);
-      }
-
+    genResult = gen.next(betterThan);
+    if (genResult.done) {
+      onFinish(genResult.value);
+      return;
+    } else {
       let { left, right, serialiseResults } = genResult.value;
+
+      document
+        .querySelector("#serialize")
+        .addEventListener("click", () => save(serialiseResults()));
       document.querySelector("#left").innerHTML = left.itemView();
       document.querySelector("#right").innerHTML = right.itemView();
     }
+  }
 
-    document.querySelector("#leftButton").disabled = false;
-    document.querySelector("#rightButton").disabled = false;
-    document.querySelector("#serialize").disabled = false;
-    document.querySelector("#sortingAlgorithm").disabled = true;
-    document.querySelector("#playlistUrl").disabled = true;
-    document.querySelector("#playlistUrlButton").disabled = true;
-    document.querySelector("#deserialize").disabled = true;
+  /**
+   * Performs cleanup and shows results list.
+   * @param {AbstractSong[]} finalState
+   */
+  function onFinish(finalState) {
+    document.querySelector("#leftButton").disabled = true;
+    document.querySelector("#rightButton").disabled = true;
+    document.querySelector("#serialize").disabled = true;
 
-    let genResult = gen.next();
+    for (let item of finalState) {
+      let listElement = document.createElement("li");
+      listElement.innerHTML = item.listItem();
+      document.querySelector("#results").appendChild(listElement);
+    }
+
     let { left, right, serialiseResults } = genResult.value;
-    document
-      .querySelector("#serialize")
-      .addEventListener("click", () => save(serialiseResults()));
     document.querySelector("#left").innerHTML = left.itemView();
     document.querySelector("#right").innerHTML = right.itemView();
-
-    document
-      .querySelector("#leftButton")
-      .addEventListener("click", () => onclick(true));
-    document
-      .querySelector("#rightButton")
-      .addEventListener("click", () => onclick(false));
   }
 
-  async function urlDispatch() {
-    async function fetchFromServer(endpoint, paramKey, paramValue) {
-      let params = new URLSearchParams();
-      params.append(paramKey, paramValue);
-      const songs_request = fetch(`${BACKEND_URL}/${endpoint}?${params}`);
-      const songs_response = await songs_request;
+  document.querySelector("#leftButton").disabled = false;
+  document.querySelector("#rightButton").disabled = false;
+  document.querySelector("#serialize").disabled = false;
+  document.querySelector("#sortingAlgorithm").disabled = true;
+  document.querySelector("#playlistUrl").disabled = true;
+  document.querySelector("#playlistUrlButton").disabled = true;
+  document.querySelector("#deserialize").disabled = true;
 
-      if (songs_response.ok == false) {
-        throw new Error((await playlist_response.json()).err);
-      }
-      const songs = await songs_response.json();
-      let deserialisedSongs = songs.map(deserialiseSong);
-      return Promise.all(deserialisedSongs);
+  let genResult = gen.next();
+  let { left, right, serialiseResults } = genResult.value;
+  document
+    .querySelector("#serialize")
+    .addEventListener("click", () => save(serialiseResults()));
+  document.querySelector("#left").innerHTML = left.itemView();
+  document.querySelector("#right").innerHTML = right.itemView();
+
+  document
+    .querySelector("#leftButton")
+    .addEventListener("click", () => onclick(true));
+  document
+    .querySelector("#rightButton")
+    .addEventListener("click", () => onclick(false));
+}
+/**
+ * Checks the URL (from the #playlistUrl element) and returns the songlist corresponding to it's contents.
+ * @returns {AbstractSong[]}
+ */
+async function urlDispatch() {
+  /**
+   * Fetch from the specified endpoint with the specified key and value.
+   * @param {string} endpoint
+   * @param {string} paramKey
+   * @param {string} paramValue
+   * @returns {AbstractSong[]}
+   */
+  async function fetchFromServer(endpoint, paramKey, paramValue) {
+    let params = new URLSearchParams();
+    params.append(paramKey, paramValue);
+    const songs_request = fetch(`${BACKEND_URL}/${endpoint}?${params}`);
+    const songs_response = await songs_request;
+
+    if (songs_response.ok == false) {
+      throw new Error((await playlist_response.json()).err);
     }
-
-    async function youtubePlaylistIDtoSongObjects(playlistID) {
-      return await fetchFromServer("getplaylist", "playlistID", playlistID);
-    }
-
-    async function bandcampAlbumURLtoSongObjects(albumURL) {
-      return await fetchFromServer("getbandcampalbum", "albumURL", albumURL);
-    }
-
-    const input = document.querySelector("#playlistUrl").value;
-    let urlMatch;
-    console.log(
-      input.match(
-        /^(?:https?:\/\/(?:www\.)?)?youtube\.com\/playlist\?list=(?:(?:(.+)&si=.+)|(.+))/,
-      ),
-    );
-    console.log(
-      input.match(/^(?:https?:\/\/)(?:.+)\.bandcamp\.com\/album\/.+/),
-    );
-
-    if (
-      (urlMatch = input.match(
-        /^(?:https?:\/\/(?:www\.)?)?youtube\.com\/playlist\?list=(?:(?:(.+)&si=.+)|(.+))/,
-      ))
-    ) {
-      //If a match for the first group isn't found, uses the result of the second match group.
-      const playlistID = urlMatch[1] ? urlMatch[1] : urlMatch[2];
-      let songList = await youtubePlaylistIDtoSongObjects(playlistID);
-      return songList;
-    } else if (
-      (urlMatch = input.match(
-        /^(?:https?:\/\/)(?:.+)\.bandcamp\.com\/album\/.+/,
-      ))
-    ) {
-      const albumURL = urlMatch[0];
-      let songList = await bandcampAlbumURLtoSongObjects(albumURL);
-      return songList;
-    } else {
-      throw "URL improperly formatted or Service not supported";
-    }
+    const songs = await songs_response.json();
+    let deserialisedSongs = songs.map(deserialiseSong);
+    return Promise.all(deserialisedSongs);
+  }
+  /**
+   *
+   * @param {String} playlistID
+   * @returns {youtubeVideo}
+   */
+  async function youtubePlaylistIDtoSongObjects(playlistID) {
+    return await fetchFromServer("getplaylist", "playlistID", playlistID);
+  }
+  /**
+   *
+   * @param {String} albumURL
+   * @returns {bandcampTrack}
+   */
+  async function bandcampAlbumURLtoSongObjects(albumURL) {
+    return await fetchFromServer("getbandcampalbum", "albumURL", albumURL);
   }
 
-  async function deserialize(file) {
-    const jsonString = await file.text();
-    const order = await JSON.parse(jsonString);
-    return deserilializeGen(order);
+  const input = document.querySelector("#playlistUrl").value;
+  let urlMatch;
+  if (
+    (urlMatch = input.match(
+      /^(?:https?:\/\/(?:www\.)?)?youtube\.com\/playlist\?list=(?:(?:(.+)&si=.+)|(.+))/,
+    ))
+  ) {
+    //If a match for the first group isn't found, uses the result of the second match group.
+    const playlistID = urlMatch[1] ? urlMatch[1] : urlMatch[2];
+    let songList = youtubePlaylistIDtoSongObjects(playlistID);
+    return songList;
+  } else if (
+    (urlMatch = input.match(/^(?:https?:\/\/)(?:.+)\.bandcamp\.com\/album\/.+/))
+  ) {
+    const albumURL = urlMatch[0];
+    let songList = bandcampAlbumURLtoSongObjects(albumURL);
+    return songList;
+  } else {
+    throw "URL improperly formatted or Service not supported";
   }
+}
+/**
+ *
+ * @param {File} file
+ * @returns {Generator}
+ */
+async function deserialize(file) {
+  const jsonString = await file.text();
+  const order = await JSON.parse(jsonString);
+  return deserilializeGen(order);
+}
 
+document.addEventListener("DOMContentLoaded", () => {
   document
     .querySelector("#playlistUrl")
     .addEventListener("keypress", function (event) {
