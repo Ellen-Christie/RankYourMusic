@@ -446,45 +446,6 @@ function* binaryInsertionSortGen(toOrder, ordered) {
 function* mergeSortGen(toOrder, state) {
   /**
    *
-   * @param {AbstractSong[]} array
-   * @param {Int} i
-   * @param {Int} mid
-   * @param {Int} high
-   * @param {Int} width
-   * @param {AbstractSong[]} copy
-   * @param {Int} index
-   * @param {Int} leftIndex
-   * @param {Int} rightIndex
-   * @returns {function(): String}
-   */
-  function serialize(
-    array,
-    i,
-    mid,
-    high,
-    width,
-    copy,
-    index,
-    leftIndex,
-    rightIndex,
-  ) {
-    return () => {
-      let orderObject = new serializableMergeOrderState(
-        array,
-        i,
-        mid,
-        high,
-        width,
-        copy,
-        index,
-        leftIndex,
-        rightIndex,
-      );
-      return JSON.stringify(orderObject);
-    };
-  }
-  /**
-   *
    * @param {AbstractSong} array
    * @param {Int} low
    * @param {Int} mid
@@ -519,21 +480,20 @@ function* mergeSortGen(toOrder, state) {
         leftListIndex++;
       } else {
         let [x, y] = [copy[leftListIndex], copy[rightListIndex]];
-        let leftBetterThanRight = yield new SortGeneratorResponse(
-          x,
-          y,
-          serialize(
+        let leftBetterThanRight = yield new SortGeneratorResponse(x, y, () => {
+          let orderObject = new serializableMergeOrderState(
             array,
-            low,
+            i,
             mid,
             high,
             width,
             copy,
             index,
-            leftListIndex,
-            rightListIndex,
-          ),
-        );
+            leftIndex,
+            rightIndex,
+          );
+          return JSON.stringify(orderObject);
+        });
         if (leftBetterThanRight) {
           array[index] = x;
           leftListIndex++;
@@ -624,6 +584,10 @@ function createGen(songList) {
  * @param {Generator} gen
  */
 function main(gen) {
+  let leftSongView = document.querySelector("#left");
+  let rightSongView = document.querySelector("#right");
+  let leftButton = document.querySelector("#leftButton");
+  let rightButton = document.querySelector("#rightButton");
   /**
    * Takes a serialized SortGen as a JSON string and prompts the user to save it to disk.
    * @param {String} jsonString
@@ -669,8 +633,8 @@ function main(gen) {
       document
         .querySelector("#serialize")
         .addEventListener("click", () => save(serialiseResults()));
-      document.querySelector("#left").innerHTML = left.itemView();
-      document.querySelector("#right").innerHTML = right.itemView();
+      leftSongView.innerHTML = left.itemView();
+      leftSongView.innerHTML = right.itemView();
     }
   }
 
@@ -679,8 +643,8 @@ function main(gen) {
    * @param {AbstractSong[]} finalState
    */
   function onFinish(finalState) {
-    document.querySelector("#leftButton").disabled = true;
-    document.querySelector("#rightButton").disabled = true;
+    leftButton.disabled = true;
+    rightButton.disabled = true;
     document.querySelector("#serialize").disabled = true;
 
     for (let item of finalState) {
@@ -690,32 +654,31 @@ function main(gen) {
     }
 
     let { left, right, serialiseResults } = genResult.value;
-    document.querySelector("#left").innerHTML = left.itemView();
-    document.querySelector("#right").innerHTML = right.itemView();
+    leftSongView.innerHTML = left.itemView();
+    rightSongView.innerHTML = right.itemView();
   }
 
-  document.querySelector("#leftButton").disabled = false;
-  document.querySelector("#rightButton").disabled = false;
+  //Setup DOM
+  leftButton.disabled = false;
+  rightButton.disabled = false;
   document.querySelector("#serialize").disabled = false;
   document.querySelector("#sortingAlgorithm").disabled = true;
   document.querySelector("#playlistUrl").disabled = true;
   document.querySelector("#playlistUrlButton").disabled = true;
   document.querySelector("#deserialize").disabled = true;
 
+  // Get first two songs to compare.
   let genResult = gen.next();
   let { left, right, serialiseResults } = genResult.value;
   document
     .querySelector("#serialize")
     .addEventListener("click", () => save(serialiseResults()));
-  document.querySelector("#left").innerHTML = left.itemView();
-  document.querySelector("#right").innerHTML = right.itemView();
 
-  document
-    .querySelector("#leftButton")
-    .addEventListener("click", () => onclick(true));
-  document
-    .querySelector("#rightButton")
-    .addEventListener("click", () => onclick(false));
+  leftSongView.innerHTML = left.itemView();
+  rightSongView.innerHTML = right.itemView();
+
+  leftButton.addEventListener("click", () => onclick(true));
+  rightButton.addEventListener("click", () => onclick(false));
 }
 /**
  * Checks the URL (from the #playlistUrl element) and returns the songlist corresponding to it's contents.
@@ -768,14 +731,12 @@ async function urlDispatch() {
   ) {
     //If a match for the first group isn't found, uses the result of the second match group.
     const playlistID = urlMatch[1] ? urlMatch[1] : urlMatch[2];
-    let songList = youtubePlaylistIDtoSongObjects(playlistID);
-    return songList;
+    return youtubePlaylistIDtoSongObjects(playlistID);
   } else if (
     (urlMatch = input.match(/^(?:https?:\/\/)(?:.+)\.bandcamp\.com\/album\/.+/))
   ) {
     const albumURL = urlMatch[0];
-    let songList = bandcampAlbumURLtoSongObjects(albumURL);
-    return songList;
+    return bandcampAlbumURLtoSongObjects(albumURL);
   } else {
     throw "URL improperly formatted or Service not supported";
   }
