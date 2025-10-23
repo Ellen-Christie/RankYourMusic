@@ -318,15 +318,15 @@ class serializableBinaryInsertionOrderState extends SerializableSortGenState {
 class serializableMergeOrderState extends SerializableSortGenState {
   /**
    *
-   * @param {Array} array
-   * @param {Number} low
-   * @param {Number} mid
-   * @param {Number} high
-   * @param {Number} width
-   * @param {Array} copy
-   * @param {Number} index
-   * @param {Number} leftIndex
-   * @param {Number} rightIndex
+   * @param {serializableSong[]} array
+   * @param {Int} low
+   * @param {Int} mid
+   * @param {Int} high
+   * @param {Int} width
+   * @param {serializableSong[]} copy
+   * @param {Int} index
+   * @param {Int} leftIndex
+   * @param {Int} rightIndex
    */
   constructor(
     array,
@@ -489,8 +489,8 @@ function* mergeSortGen(toOrder, state) {
             width,
             copy,
             index,
-            leftIndex,
-            rightIndex,
+            leftListIndex,
+            rightListIndex,
           );
           return JSON.stringify(orderObject);
         });
@@ -519,11 +519,11 @@ function* mergeSortGen(toOrder, state) {
     }
     return toOrder;
   } else {
-    let { array, i, mid, high, width, copy, index, leftIndex, rightIndex } =
+    let { array, low, mid, high, width, copy, index, leftIndex, rightIndex } =
       state;
     yield* merge(
       array,
-      i,
+      low,
       mid,
       high,
       width,
@@ -533,7 +533,8 @@ function* mergeSortGen(toOrder, state) {
       rightIndex,
     );
     let listLength = array.length;
-    i = i + width * 2;
+    // low is always equal to the i of that loop.
+    let i = low + width * 2;
     for (i; i < listLength - width; i += width * 2) {
       yield* merge(
         array,
