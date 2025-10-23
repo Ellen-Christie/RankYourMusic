@@ -1,4 +1,4 @@
-//"use strict";
+"use strict";
 // Global Vars
 
 /** The URL for the server-side. Replace when deploying to production. */
