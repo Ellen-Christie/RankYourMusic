@@ -1,4 +1,4 @@
-"use strict";
+//"use strict";
 // Global Vars
 
 /** The URL for the server-side. Replace when deploying to production. */
@@ -483,7 +483,7 @@ function* mergeSortGen(toOrder, state) {
         let leftBetterThanRight = yield new SortGeneratorResponse(x, y, () => {
           let orderObject = new serializableMergeOrderState(
             array,
-            i,
+            low,
             mid,
             high,
             width,
@@ -583,7 +583,8 @@ function createGen(songList) {
  * The main function. Handles events from the UI and updates it accordingly.
  * @param {Generator} gen
  */
-function main(gen) {
+async function main(gentoawait) {
+  let gen = await gentoawait;
   let leftSongView = document.querySelector("#left");
   let rightSongView = document.querySelector("#right");
   let leftButton = document.querySelector("#leftButton");
@@ -634,7 +635,7 @@ function main(gen) {
         .querySelector("#serialize")
         .addEventListener("click", () => save(serialiseResults()));
       leftSongView.innerHTML = left.itemView();
-      leftSongView.innerHTML = right.itemView();
+      rightSongView.innerHTML = right.itemView();
     }
   }
 
