@@ -3,7 +3,7 @@ from flask import Flask, Response, make_response, request, abort, jsonify
 from flask_cors import CORS
 import googleapiclient.discovery
 from googleapiclient.errors import HttpError
-from Server.Vendored.bandcamp_api import Bandcamp
+from Vendored.bandcamp_api import Bandcamp
 
 app = Flask(__name__)
 CORS(app)
