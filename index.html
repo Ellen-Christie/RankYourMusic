@@ -9,14 +9,48 @@
             }
 
             .flex-container > div {
+                flex: 2 1 100%;
                 background-color: #f1f1f1;
                 margin: 10px;
                 padding: 20px;
                 font-size: 20px;
             }
 
+            .flex-container > div > button {
+                background-color: grey;
+                width: 100%;
+                height: 42px;
+                border: none;
+                color: white;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                cursor: pointer;
+            }
             img {
                 max-width: 100%;
+            }
+            @media (max-width: 750px) {
+                .flex-container {
+                    flex-direction: column;
+                }
+            }
+            .embed-container {
+                position: relative;
+                padding-bottom: 56.25%;
+                height: 0;
+                overflow: hidden;
+                max-width: 100%;
+            }
+            .embed-container iframe,
+            .embed-container object,
+            .embed-container embed {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
             }
         </style>
         <meta charset="UTF-8" />
@@ -24,33 +58,37 @@
     </head>
 
     <body>
-        <h1 text-align="center">Which song is better?</h1>
-        <div class="flex-container">
+        <h1 id="headerText" text-align="center">Welcome to Rankly!</h1>
+        <div id="mainView" style="display: none" class="flex-container">
             <div>
                 <p id="left"></p>
-                <button disabled="true" id="leftButton">This</button>
+                <button id="leftButton">This</button>
             </div>
             <div>
                 <p id="right"></p>
-                <button disabled="true" id="rightButton">This</button>
+                <button id="rightButton">This</button>
             </div>
         </div>
-        <div margin="auto">
-            <label for="sortingAlgorithm">Sorting Algorithm:</label>
-            <select name="sortingAlgorithm" id="sortingAlgorithm">
-                <option value="binaryInsertionSort">
-                    Binary Insertion Sort
-                </option>
-                <option value="mergeSort">Merge Sort</option>
-            </select>
-            <br />
-            <label for="playlistUrl"
-                >Youtube Playlist or Bandcamp Album URL:</label
-            >
-            <input type="text" id="playlistUrl" name="playlistUrl" />
-            <input type="submit" id="playlistUrlButton" value="Submit" />
-            <button disabled="true" id="serialize">Save progress</button>
-            <br />
+        <div style="font-size: 26px" margin="auto">
+            <div id="toHide">
+                <label for="sortingAlgorithm">Sorting Algorithm:</label>
+                <select name="sortingAlgorithm" id="sortingAlgorithm">
+                    <option value="binaryInsertionSort">
+                        Binary Insertion Sort
+                    </option>
+                    <option value="mergeSort">Merge Sort</option>
+                </select>
+                <br />
+                <label for="playlistUrl"
+                    >Youtube Playlist or Bandcamp Album URL:</label
+                >
+                <input type="text" id="playlistUrl" name="playlistUrl" />
+                <input type="submit" id="playlistUrlButton" value="Submit" />
+                <button style="display: none" id="serialize">
+                    Save progress
+                </button>
+                <br />
+            </div>
             <label for="loadfile">Load Progress: </label>
             <input type="file" id="deserialize" name="loadfile" />
             <p style="color: red" id="errorText"></p>

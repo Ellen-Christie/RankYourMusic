@@ -31,7 +31,7 @@ function balancebTree(tree) {
 /**
  * Converts a BinaryTree to an ordered Array
  * @param {BinaryTree} tree
- * @returns {Array}
+ * @returns {array}
  */
 function bTreetoList(tree) {
   if (tree === emptyNode) {
@@ -42,7 +42,7 @@ function bTreetoList(tree) {
 }
 /**
  * Converts ordered Array into a *balanced* BinaryTree
- * @param {Array} list
+ * @param {array} list
  * @return {BinaryTree}
  */
 function listtobTree(list) {
@@ -88,7 +88,7 @@ class AbstractSong {
   /**
    * Returns a String of html
    * When rendered it shows an embed of the song and corresponding information
-   * @returns {String}
+   * @returns {string}
    */
   itemView() {
     return;
@@ -96,7 +96,7 @@ class AbstractSong {
   /**
    * Returns a String that displays the song name and (usually) artist
    * This is then used when the ranked list of songs is shown to the user
-   * @returns {String}
+   * @returns {string}
    */
   listItem() {
     return;
@@ -136,15 +136,15 @@ class youtubeVideo extends AbstractSong {
   }
   /**
    *
-   * @returns {String}
+   * @returns {string}
    */
   itemView() {
-    return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${this.#videoId}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    return `<div class='embed-container'><iframe src='https://www.youtube.com/embed/${this.#videoId}' frameborder='0' allowfullscreen></iframe></div>
          <p>${this.#title}</p>`;
   }
   /**
    *
-   * @returns {String}
+   * @returns {string}
    */
   listItem() {
     return this.#title;
@@ -154,8 +154,8 @@ class youtubeVideo extends AbstractSong {
 class serializableYoutubeVideo extends serializableSong {
   /**
    *
-   * @param {String} title
-   * @param {String} videoId
+   * @param {string} title
+   * @param {string} videoId
    */
   constructor(title, videoId) {
     super("youtubeVideo");
@@ -200,7 +200,7 @@ class bandcampTrack extends AbstractSong {
   }
   /**
    *
-   * @returns {String}
+   * @returns {string}
    */
   itemView() {
     return `<img src=${this.#albumArt}>
@@ -211,7 +211,7 @@ class bandcampTrack extends AbstractSong {
   }
   /**
    *
-   * @returns {String}
+   * @returns {string}
    */
   listItem() {
     return `${this.#title} - ${this.#artist}`;
@@ -221,12 +221,12 @@ class bandcampTrack extends AbstractSong {
 class serializableBandcampTrack extends serializableSong {
   /**
    *
-   * @param {String} title
-   * @param {String} albumTitle
-   * @param {String} artist
-   * @param {Number} albumID
-   * @param {Number} trackID
-   * @param {String} albumArt
+   * @param {string} title
+   * @param {string} albumTitle
+   * @param {string} artist
+   * @param {int} albumID
+   * @param {int} trackID
+   * @param {string} albumArt
    */
   constructor(title, albumTitle, artist, albumID, trackID, albumArt) {
     super("bandcampTrack");
@@ -319,14 +319,14 @@ class serializableMergeOrderState extends SerializableSortGenState {
   /**
    *
    * @param {serializableSong[]} array
-   * @param {Int} low
-   * @param {Int} mid
-   * @param {Int} high
-   * @param {Int} width
+   * @param {int} low
+   * @param {int} mid
+   * @param {int} high
+   * @param {int} width
    * @param {serializableSong[]} copy
-   * @param {Int} index
-   * @param {Int} leftIndex
-   * @param {Int} rightIndex
+   * @param {int} index
+   * @param {int} leftIndex
+   * @param {int} rightIndex
    */
   constructor(
     array,
@@ -388,7 +388,7 @@ function* binaryInsertionSortGen(toOrder, ordered) {
   /**
    *
    * @param {BinaryTree} stateTree
-   * @param {Int} toOrderIndex
+   * @param {int} toOrderIndex
    * @returns {function(): string}
    */
   function serialize(stateTree, toOrderIndex) {
@@ -447,14 +447,14 @@ function* mergeSortGen(toOrder, state) {
   /**
    *
    * @param {AbstractSong} array
-   * @param {Int} low
-   * @param {Int} mid
-   * @param {Int} high
-   * @param {Int} width
-   * @param {Int} copy2
-   * @param {Int} index2
-   * @param {Int} leftIndex
-   * @param {Int} rightIndex
+   * @param {int} low
+   * @param {int} mid
+   * @param {int} high
+   * @param {int} width
+   * @param {int} copy2
+   * @param {int} index2
+   * @param {int} leftIndex
+   * @param {int} rightIndex
    */
   function* merge(
     array,
@@ -563,10 +563,11 @@ function* mergeSortGen(toOrder, state) {
 
 /**
  *
- * @param {AbstractSong[]} songList
- * @returns {Generator}
+ * @param {promise<AbstractSong[]>} songList
+ * @returns {promise<Generator>}
  */
-function createGen(songList) {
+async function createGen(songs) {
+  let songList = await songs;
   if (songList.length < 2) {
     throw "Error: Need a list of at least 2 songs";
   }
@@ -580,19 +581,24 @@ function createGen(songList) {
   return gen;
 }
 
+function resetDOM() {
+  document.querySelector("#headerText").innerHTML = "Welcome to Rankly!";
+  document.querySelector("#mainView").style.display = "none";
+  document.querySelector("#serialize").style.display = "none";
+  document.querySelector("#toHide").style.display = "block";
+}
+
 /**
  * The main function. Handles events from the UI and updates it accordingly.
- * @param {Generator} gen
+ * @param {promise<Generator>} gen
  */
-async function main(gentoawait) {
-  let gen = await gentoawait;
+async function main(genp) {
   let leftSongView = document.querySelector("#left");
   let rightSongView = document.querySelector("#right");
-  let leftButton = document.querySelector("#leftButton");
-  let rightButton = document.querySelector("#rightButton");
+  let gen = await genp;
   /**
    * Takes a serialized SortGen as a JSON string and prompts the user to save it to disk.
-   * @param {String} jsonString
+   * @param {string} jsonString
    */
   function save(jsonString) {
     console.log(jsonString);
@@ -613,6 +619,7 @@ async function main(gentoawait) {
     );
     document.body.removeChild(link);
   }
+
   /**
    * Called when a song is selected by the user. "betterThan" is true if the left button is clicked and false if the right button is clicked.
    * @param {Boolean} betterThan
@@ -645,30 +652,20 @@ async function main(gentoawait) {
    * @param {AbstractSong[]} finalState
    */
   function onFinish(finalState) {
-    leftButton.disabled = true;
-    rightButton.disabled = true;
-    document.querySelector("#serialize").disabled = true;
+    resetDOM();
 
     for (let item of finalState) {
       let listElement = document.createElement("li");
       listElement.innerHTML = item.listItem();
       document.querySelector("#results").appendChild(listElement);
     }
-
-    let { left, right, serialiseResults } = genResult.value;
-    leftSongView.innerHTML = left.itemView();
-    rightSongView.innerHTML = right.itemView();
   }
 
   //Setup DOM
-  leftButton.disabled = false;
-  rightButton.disabled = false;
-  document.querySelector("#serialize").disabled = false;
-  document.querySelector("#sortingAlgorithm").disabled = true;
-  document.querySelector("#playlistUrl").disabled = true;
-  document.querySelector("#playlistUrlButton").disabled = true;
-  document.querySelector("#deserialize").disabled = true;
-
+  document.querySelector("#headerText").innerHTML = "Which song is better?";
+  document.querySelector("#mainView").style.display = "flex";
+  document.querySelector("#serialize").style.display = "inline";
+  document.querySelector("#toHide").style.display = "none";
   // Get first two songs to compare.
   let genResult = gen.next();
   let { left, right, serialiseResults } = genResult.value;
@@ -684,7 +681,7 @@ async function main(gentoawait) {
 }
 /**
  * Checks the URL (from the #playlistUrl element) and returns the songlist corresponding to it's contents.
- * @returns {AbstractSong[]}
+ * @returns {promise<AbstractSong[]>}
  */
 async function urlDispatch() {
   /**
@@ -692,7 +689,7 @@ async function urlDispatch() {
    * @param {string} endpoint
    * @param {string} paramKey
    * @param {string} paramValue
-   * @returns {AbstractSong[]}
+   * @returns {promise<AbstractSong[]>}
    */
   async function fetchFromServer(endpoint, paramKey, paramValue) {
     let params = new URLSearchParams();
@@ -709,16 +706,16 @@ async function urlDispatch() {
   }
   /**
    *
-   * @param {String} playlistID
-   * @returns {youtubeVideo}
+   * @param {string} playlistID
+   * @returns {promise<youtubeVideo>}
    */
   async function youtubePlaylistIDtoSongObjects(playlistID) {
     return fetchFromServer("getplaylist", "playlistID", playlistID);
   }
   /**
    *
-   * @param {String} albumURL
-   * @returns {bandcampTrack}
+   * @param {string} albumURL
+   * @returns {promise<bandcampTrack>}
    */
   async function bandcampAlbumURLtoSongObjects(albumURL) {
     return fetchFromServer("getbandcampalbum", "albumURL", albumURL);
@@ -746,7 +743,7 @@ async function urlDispatch() {
 /**
  *
  * @param {File} file
- * @returns {Generator}
+ * @returns {promise<Generator>}
  */
 async function deserialize(file) {
   const jsonString = await file.text();
@@ -774,6 +771,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(gen);
         main(gen);
       } catch (err) {
+        resetDOM();
         console.log(err);
         document.querySelector("#errorText").innerHTML = err;
       }
@@ -787,6 +785,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const gen = deserialize(file);
         main(gen);
       } catch (err) {
+        resetDOM();
         console.log(err);
         document.querySelector("#errorText").innerHTML = err;
       }
