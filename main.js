@@ -746,9 +746,13 @@ async function urlDispatch() {
  * @returns {promise<Generator>}
  */
 async function deserialize(file) {
-  const jsonString = await file.text();
-  const order = await JSON.parse(jsonString);
-  return deserilializeGen(order);
+  try {
+    const jsonString = await file.text();
+    const order = await JSON.parse(jsonString);
+    return deserilializeGen(order);
+  } catch {
+    throw "Error: Error deserializing progress. File corrupt?";
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
