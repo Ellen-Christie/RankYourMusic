@@ -399,7 +399,6 @@ function* binaryInsertionSortGen(toOrder, ordered) {
         stateList,
         restToOrder,
       );
-      console.log(orderObject);
       return JSON.stringify(orderObject);
     };
   }
@@ -601,7 +600,6 @@ async function main(genp) {
    * @param {string} jsonString
    */
   function save(jsonString) {
-    console.log(jsonString);
     const blob = new Blob([jsonString], { type: "text/json" });
     const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -755,7 +753,14 @@ async function deserialize(file) {
   }
 }
 
+function whenError(errMsg) {
+  resetDOM();
+  console.log(errMsg);
+  document.querySelector("#errorText").innerHTML = errMsg;
+}
 document.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("error", (e) => whenError(e.error));
+  window.addEventListener("unhandledrejection", (e) => whenError(e.reason));
   document
     .querySelector("#playlistUrl")
     .addEventListener("keypress", function (event) {
@@ -768,30 +773,16 @@ document.addEventListener("DOMContentLoaded", () => {
     .querySelector("#playlistUrlButton")
     .addEventListener("click", async () => {
       document.querySelector("#errorText").innerHTML = "";
-      try {
-        const songs = urlDispatch();
-        console.log(songs);
-        const gen = createGen(songs);
-        console.log(gen);
-        main(gen);
-      } catch (err) {
-        resetDOM();
-        console.log(err);
-        document.querySelector("#errorText").innerHTML = err;
-      }
+      const songs = urlDispatch();
+      const gen = createGen(songs);
+      main(gen);
     });
 
   document
     .querySelector("#deserialize")
     .addEventListener("change", async function () {
-      try {
-        const file = this.files[0];
-        const gen = deserialize(file);
-        main(gen);
-      } catch (err) {
-        resetDOM();
-        console.log(err);
-        document.querySelector("#errorText").innerHTML = err;
-      }
+      const file = this.files[0];
+      const gen = deserialize(file);
+      main(gen);
     });
 });
