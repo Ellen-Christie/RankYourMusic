@@ -559,6 +559,8 @@ function restoreGen(order) {
   }
 }
 
+// Other
+
 /**
  * Returns a sortGenerator, of the type sepcified by the drop down "#sortingAlgorithm".
  * @param {promise<AbstractSong[]>} songList
