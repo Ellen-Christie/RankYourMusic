@@ -28,10 +28,11 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>serializableSong<span class="signature">()</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>serializableSong<span class="signature">(type)</span><span class="type-signature"></span></h2>
         
             <div class="class-description">The Super Class to all Serialized representations of songs.
-A serialized song is recieved either fom the backend sever or from the user's computer.
+A serializableSong is recieved either fom the backend sever or from the user's computer, and
+A serializableSong's values (except for it's type) are the values needed to initialise it's corresponding AbstractSong.
 The serializableSong#type parameter allows the deserialiseSong function to dispatch based on type.</div>
         
     
@@ -47,7 +48,7 @@ The serializableSong#type parameter allows the deserialiseSong function to dispa
     
 
     
-    <h4 class="name" id="serializableSong"><span class="type-signature"></span>new serializableSong<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="serializableSong"><span class="type-signature"></span>new serializableSong<span class="signature">(type)</span><span class="type-signature"></span></h4>
     
 
     
@@ -60,6 +61,58 @@ The serializableSong#type parameter allows the deserialiseSong function to dispa
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">"youtubeVideo"</span>
+|
+
+<span class="param-type">"bandcampTrack"</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -95,7 +148,7 @@ The serializableSong#type parameter allows the deserialiseSong function to dispa
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="main.js.html">main.js</a>, <a href="main.js.html#line111">line 111</a>
+        <a href="main.js.html">main.js</a>, <a href="main.js.html#line195">line 195</a>
     </li></ul></dd>
     
 
@@ -157,13 +210,13 @@ The serializableSong#type parameter allows the deserialiseSong function to dispa
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="SerializableSortGenState.html">SerializableSortGenState</a></li><li><a href="SortGeneratorResponse.html">SortGeneratorResponse</a></li><li><a href="bandcampTrack.html">bandcampTrack</a></li><li><a href="serializableBandcampTrack.html">serializableBandcampTrack</a></li><li><a href="serializableBinaryInsertionOrderState.html">serializableBinaryInsertionOrderState</a></li><li><a href="serializableMergeOrderState.html">serializableMergeOrderState</a></li><li><a href="serializableSong.html">serializableSong</a></li><li><a href="serializableYoutubeVideo.html">serializableYoutubeVideo</a></li><li><a href="youtubeVideo.html">youtubeVideo</a></li></ul><h3>Interfaces</h3><ul><li><a href="AbstractSong.html">AbstractSong</a></li></ul><h3>Global</h3><ul><li><a href="global.html#BACKEND_URL">BACKEND_URL</a></li><li><a href="global.html#bTreetoList">bTreetoList</a></li><li><a href="global.html#balancebTree">balancebTree</a></li><li><a href="global.html#binaryInsertionSortGen">binaryInsertionSortGen</a></li><li><a href="global.html#createGen">createGen</a></li><li><a href="global.html#deserialiseSong">deserialiseSong</a></li><li><a href="global.html#deserialize">deserialize</a></li><li><a href="global.html#deserilializeGen">deserilializeGen</a></li><li><a href="global.html#listtobTree">listtobTree</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#mergeSortGen">mergeSortGen</a></li><li><a href="global.html#urlDispatch">urlDispatch</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="SerializableSortGenState.html">SerializableSortGenState</a></li><li><a href="SortGeneratorResponse.html">SortGeneratorResponse</a></li><li><a href="bandcampTrack.html">bandcampTrack</a></li><li><a href="serializableBandcampTrack.html">serializableBandcampTrack</a></li><li><a href="serializableBinaryInsertionOrderState.html">serializableBinaryInsertionOrderState</a></li><li><a href="serializableMergeOrderState.html">serializableMergeOrderState</a></li><li><a href="serializableSong.html">serializableSong</a></li><li><a href="serializableYoutubeVideo.html">serializableYoutubeVideo</a></li><li><a href="youtubeVideo.html">youtubeVideo</a></li></ul><h3>Interfaces</h3><ul><li><a href="AbstractSong.html">AbstractSong</a></li></ul><h3>Global</h3><ul><li><a href="global.html#BACKEND_URL">BACKEND_URL</a></li><li><a href="global.html#bTreetoList">bTreetoList</a></li><li><a href="global.html#balancebTree">balancebTree</a></li><li><a href="global.html#binaryInsertionSortGen">binaryInsertionSortGen</a></li><li><a href="global.html#createGen">createGen</a></li><li><a href="global.html#deserialize">deserialize</a></li><li><a href="global.html#listtobTree">listtobTree</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#mergeSortGen">mergeSortGen</a></li><li><a href="global.html#resetDOM">resetDOM</a></li><li><a href="global.html#restoreGen">restoreGen</a></li><li><a href="global.html#restoreSong">restoreSong</a></li><li><a href="global.html#urlDispatch">urlDispatch</a></li><li><a href="global.html#whenError">whenError</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Wed Oct 29 2025 00:56:29 GMT+1030 (Australian Central Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Sat Nov 01 2025 15:01:12 GMT+1030 (Australian Central Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
