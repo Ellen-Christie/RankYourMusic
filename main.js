@@ -595,6 +595,7 @@ async function main(genp) {
   let leftSongView = document.querySelector("#left");
   let rightSongView = document.querySelector("#right");
   let gen = await genp;
+
   /**
    * Takes a serialized SortGen as a JSON string and prompts the user to save it to disk.
    * @param {string} jsonString
