@@ -586,7 +586,7 @@ function resetDOM() {
   document.querySelector("#headerText").innerHTML = "Welcome to Rankly!";
   document.querySelector("#mainView").style.display = "none";
   document.querySelector("#serialize").style.display = "none";
-  document.querySelector("#toHide").style.display = "block";
+  document.querySelector("#toHide").style.display = "grid";
 }
 
 /**
@@ -663,7 +663,7 @@ async function main(genp) {
 
   //Setup DOM
   document.querySelector("#headerText").innerHTML = "Which song is better?";
-  document.querySelector("#mainView").style.display = "flex";
+  document.querySelector("#mainView").style.display = "grid";
   document.querySelector("#serialize").style.display = "inline";
   document.querySelector("#toHide").style.display = "none";
 
