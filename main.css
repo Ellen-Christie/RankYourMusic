@@ -1,16 +1,18 @@
 :root {
     color-scheme: light dark;
-    --bg: light-dark(#fbf1c7 #282828);
-    --panel: light-dark(#d4c5a1 #504945);
-    --text: light-dark(#3c3836 #ebdbb2);
+    --bg: light-dark(#fbf1c7, #282828);
+    --panel: light-dark(#d4c5a1, #504945);
+    --text: light-dark(#3c3836, #ebdbb2);
+    --error-text: light-dark(#cc241d, #fb4934);
 }
 
 html,
 body {
     margin: 0;
-    color: var(--text);
-    background-color: var(--bg);
+    padding: 0;
     font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+    background: var(--bg);
 }
 
 image {
@@ -18,18 +20,22 @@ image {
     max-width: 100%;
 }
 header {
-    background-color: var(--panel);
+    background: var(--panel);
     padding: 1em;
-    border-block-end: 4px solid #98971a;
+    border-block-end: 2px solid #98971a;
+
+    & h1 {
+        margin: 0;
+    }
 }
 
 .card {
-    background-color: var(--panel);
+    background: var(--panel);
     padding: 1em;
 }
 
 button {
-    background-color: #98971a;
+    background: #98971a;
     color: #ebdbb2;
     width: 100%;
     text-align: center;
@@ -41,6 +47,7 @@ button {
 .songs-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    padding: 1em;
     gap: 1em;
 
     @media (width < 750px) {
@@ -51,6 +58,7 @@ button {
 .options-container {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
+    padding: 1em;
     gap: 1em;
 
     @media (width < 750px) {
@@ -73,4 +81,9 @@ button {
     left: 0;
     width: 100%;
     height: 100%;
+}
+
+#errorText {
+    padding: 1em;
+    color: var(--error-text);
 }

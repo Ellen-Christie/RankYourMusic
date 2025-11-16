@@ -1,9 +1,10 @@
 import os
-from flask import Flask, Response, make_response, request, abort, jsonify
-from flask_cors import CORS
+
 import googleapiclient.discovery
+from bandcamp_api import Bandcamp
+from flask import Flask, Response, abort, jsonify, make_response, request
+from flask_cors import CORS
 from googleapiclient.errors import HttpError
-from Vendored.bandcamp_api import Bandcamp
 
 app = Flask(__name__)
 CORS(app)
@@ -12,7 +13,9 @@ CORS(app)
 api_service_name = "youtube"
 api_version = "v3"
 youtube = googleapiclient.discovery.build(
-    api_service_name, api_version, developerKey=os.environ["YOUTUBE_API_KEY"]
+    api_service_name,
+    api_version,
+    developerKey="AIzaSyCiO_5--RjJelWeBeVInrbavwnGMpRUdMc",
 )
 
 bc = Bandcamp()

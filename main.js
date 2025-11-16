@@ -117,6 +117,7 @@ class youtubeVideo extends AbstractSong {
 
   /** @param {serializableYoutubeVideo} param0 */
   constructor({ title, videoId }) {
+    super();
     this.#title = title;
     this.#videoId = videoId;
   }
@@ -134,7 +135,7 @@ class youtubeVideo extends AbstractSong {
 
   /** @returns {string} */
   listItem() {
-    return this.title;
+    return this.#title;
   }
 }
 
@@ -149,6 +150,7 @@ class bandcampTrack extends AbstractSong {
 
   /** @param {serializableBandcampTrack} param0  */
   constructor({ title, albumTitle, artist, albumID, trackID, albumArt }) {
+    super();
     this.#title = title;
     this.#albumTitle = albumTitle;
     this.#artist = artist;
@@ -652,7 +654,9 @@ async function main(genp) {
    * @param {AbstractSong[]} finalState
    */
   function onFinish(finalState) {
-    resetDOM();
+    document.querySelector("#mainView").style.display = "none";
+    document.querySelector("#serialize").style.display = "none";
+    document.querySelector("#results").style.display = "block";
 
     for (let item of finalState) {
       let listElement = document.createElement("li");
@@ -721,6 +725,7 @@ async function urlDispatch() {
    * @returns {promise<bandcampTrack>}
    */
   async function bandcampAlbumURLtoSongObjects(albumURL) {
+    throw "Sorry, bandcamp support is currently borked :(";
     return fetchFromServer("getbandcampalbum", "albumURL", albumURL);
   }
 
