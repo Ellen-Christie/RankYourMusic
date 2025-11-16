@@ -15,7 +15,7 @@ api_version = "v3"
 youtube = googleapiclient.discovery.build(
     api_service_name,
     api_version,
-    developerKey="AIzaSyCiO_5--RjJelWeBeVInrbavwnGMpRUdMc",
+    developerKey=os.environ["YOUTUBE_API_KEY"],
 )
 
 bc = Bandcamp()
