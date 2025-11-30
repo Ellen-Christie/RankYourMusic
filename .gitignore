@@ -1,6 +1,6 @@
 # secrets
 Server/secret_stuff.py
-
+.zed/
 # Created by https://www.toptal.com/developers/gitignore/api/node,python,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,python,windows
 .vscode/
