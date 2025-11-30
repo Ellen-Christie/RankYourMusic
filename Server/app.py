@@ -2,7 +2,7 @@ import os
 
 import googleapiclient.discovery
 from bandcamp_api import Bandcamp
-from flask import Flask, Response, abort, jsonify, make_response, request
+from flask import Flask, abort, jsonify, request
 from flask_cors import CORS
 from googleapiclient.errors import HttpError
 
