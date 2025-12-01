@@ -17,13 +17,11 @@ type ArrayOfTwoOrMore<T> =
   | [...NonEmptyArray<T>, T, ...(NonEmptyArray<T> | [])]
   | [...(NonEmptyArray<T> | []), T, ...NonEmptyArray<T>];
 
-type ArrayWithNoNulls<T> = NonNullable<T>[];
-
 function isNotNullish<T>(value: T | null | undefined): value is T {
   return value !== undefined && value !== null;
 }
 
-function ArrayHasNoNulls<T>(a: T[]): a is ArrayWithNoNulls<T> {
+function ArrayHasNoNulls<T>(a: T[]): boolean {
   return a.every(isNotNullish);
 }
 
@@ -360,12 +358,12 @@ function* mergeSortGen(
    * Parameters copy2, index2, leftIndex, and rightIndex are passed so that the function can continue from a specified point in computation.
    */
   function* merge(
-    array: ArrayWithNoNulls<SongInterface>,
+    array: SongInterface[],
     low: number,
     mid: number,
     high: number,
     width: number,
-    copy2?: ArrayWithNoNulls<SongInterface>,
+    copy2?: SongInterface[],
     index2?: number,
     leftIndex?: number,
     rightIndex?: number,
