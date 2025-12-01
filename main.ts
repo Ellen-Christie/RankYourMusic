@@ -17,6 +17,16 @@ type ArrayOfTwoOrMore<T> =
   | [...NonEmptyArray<T>, T, ...(NonEmptyArray<T> | [])]
   | [...(NonEmptyArray<T> | []), T, ...NonEmptyArray<T>];
 
+type ArrayWithNoNulls<T> = NonNullable<T>[];
+
+function isNotNullish<T>(value: T | null | undefined): value is T {
+  return value !== undefined && value !== null;
+}
+
+function ArrayHasNoNulls<T>(a: T[]): a is ArrayWithNoNulls<T> {
+  return a.every(isNotNullish);
+}
+
 // Binary tree
 type EmptyNode = "emptyNode";
 const emptyNode: EmptyNode = "emptyNode";
@@ -68,8 +78,8 @@ function bTreetoList(tree: BinaryTree): any[] | NonEmptyArray<any> {
  */
 function listtobTree(list: NonEmptyArray<any>): bTree;
 function listtobTree(list: []): EmptyNode;
-function listtobTree(list: Array<any>): BinaryTree {
-  function partialTree(elts: any[], n: number) {
+function listtobTree<T>(list: Array<T>): BinaryTree {
+  function partialTree(elts: Array<T>, n: number): [BinaryTree, Array<T>] {
     if (n === 0) {
       return [emptyNode, elts];
     } else {
@@ -220,19 +230,23 @@ const enum SerializableSongTypeTag {
   bandcampTrack = "bandcampTrack",
 }
 class SerializableYoutubeVideo {
-  type: SerializableSongTypeTag.youtubeVideo;
-  title: string;
-  videoId: string;
+  constructor(
+    public type: SerializableSongTypeTag.youtubeVideo,
+    public title: string,
+    public videoId: string,
+  ) {}
 }
 
 class SerializableBandcampTrack {
-  type: SerializableSongTypeTag.bandcampTrack;
-  title: string;
-  albumTitle: string;
-  artist: string;
-  albumID: string;
-  trackID: string;
-  albumArt: string;
+  constructor(
+    public type: SerializableSongTypeTag.bandcampTrack,
+    public title: string,
+    public albumTitle: string,
+    public artist: string,
+    public albumID: string,
+    public trackID: string,
+    public albumArt: string,
+  ) {}
 }
 
 /**
@@ -289,30 +303,37 @@ function* binaryInsertionSortGen(
     toInsertIndex < toOrder.length;
     toInsertIndex++
   ) {
-    let toInsert = toOrder[toInsertIndex];
-    function* insert(tree: bTree) {
-      let betterThan = yield new SortGeneratorResponse(
-        toInsert,
-        tree.entry,
-        serialize(state, toInsertIndex),
-      );
-      if (betterThan === true) {
-        if (tree.left === emptyNode) {
-          tree.left = new bTree(toInsert);
+    const toInsert = toOrder[toInsertIndex];
+    if (!toInsert) {
+      continue;
+    } else {
+      // Needed for typescript compiler. No clue why, probably js scoping stuff.
+      const nonNulltoInsert: SongInterface = toInsert;
+
+      function* insert(tree: bTree): Generator<SortGeneratorResponse> {
+        const betterThan = yield new SortGeneratorResponse(
+          nonNulltoInsert,
+          tree.entry,
+          serialize(state, toInsertIndex),
+        );
+        if (betterThan === true) {
+          if (tree.left === emptyNode) {
+            tree.left = new bTree(nonNulltoInsert);
+          } else {
+            yield* insert(tree.left);
+          }
         } else {
-          yield* insert(tree.left);
-        }
-      } else {
-        if (tree.right === emptyNode) {
-          tree.right = new bTree(toInsert);
-        } else {
-          yield* insert(tree.right);
+          if (tree.right === emptyNode) {
+            tree.right = new bTree(nonNulltoInsert);
+          } else {
+            yield* insert(tree.right);
+          }
         }
       }
+      yield* insert(state);
+      const temp = balancebTree(state);
+      state = temp;
     }
-    yield* insert(state);
-    let temp = balancebTree(state);
-    state = temp;
   }
   return bTreetoList(state);
 }
@@ -339,30 +360,34 @@ function* mergeSortGen(
    * Parameters copy2, index2, leftIndex, and rightIndex are passed so that the function can continue from a specified point in computation.
    */
   function* merge(
-    array: SongInterface[],
+    array: ArrayWithNoNulls<SongInterface>,
     low: number,
     mid: number,
     high: number,
     width: number,
-    copy2?: SongInterface[],
+    copy2?: ArrayWithNoNulls<SongInterface>,
     index2?: number,
     leftIndex?: number,
     rightIndex?: number,
-  ) {
+  ): Generator<SortGeneratorResponse, undefined, Boolean> {
     let copy = copy2 ?? [...array];
     let leftListIndex = leftIndex ?? low;
     let rightListIndex = rightIndex ?? mid + 1;
     let index = index2 ?? low;
 
+    if (!(ArrayHasNoNulls(array) && ArrayHasNoNulls(copy))) {
+      throw "Error: Merge Sort Generator received list with a null value";
+    }
+
     for (index; index <= high; index++) {
       if (leftListIndex > mid) {
-        array[index] = copy[rightListIndex];
+        array[index] = copy[rightListIndex]!;
         rightListIndex++;
       } else if (rightListIndex > high) {
-        array[index] = copy[leftListIndex];
+        array[index] = copy[leftListIndex]!;
         leftListIndex++;
       } else {
-        let [x, y] = [copy[leftListIndex], copy[rightListIndex]];
+        let [x, y] = [copy[leftListIndex]!, copy[rightListIndex]!];
         let leftBetterThanRight = yield new SortGeneratorResponse(x, y, () => {
           return new SerializableMergeOrderState(
             array,
@@ -468,7 +493,8 @@ type SerializableSortGenState = { type: SortGenTypes } & (
 );
 
 class SerializableBinaryInsertionOrderState {
-  type: SortGenTypes.BinaryInsertionOrderState;
+  type: SortGenTypes.BinaryInsertionOrderState =
+    SortGenTypes.BinaryInsertionOrderState;
   ordered: SerializableSong[];
   songsToOrder: NonEmptyArray<SerializableSong>;
   constructor(
@@ -497,7 +523,7 @@ class SerializableBinaryInsertionOrderState {
 }
 
 class SerializableMergeOrderState {
-  type: SortGenTypes.MergeOrderState;
+  type: SortGenTypes.MergeOrderState = SortGenTypes.MergeOrderState;
   array: SerializableSong[];
   copy: SerializableSong[];
   constructor(
@@ -577,6 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Assign elements to variables
   // Throws error if the HTML element doesn't exist (to make typescript happy)
+
   const playlistURLEl: HTMLInputElement =
     document.querySelector("#playlistUrl") ?? throwHTMLErrorExpression();
   const playlistUrlButtonEl: HTMLInputElement =
@@ -651,7 +678,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ))
     ) {
       //If a match for the first group isn't found, uses the result of the second match group.
-      const playlistID = urlMatch[1] ? urlMatch[1] : urlMatch[2];
+      const playlistID = urlMatch[1] ? urlMatch[1] : (urlMatch[2] as string);
+      // Use of assertion above because:
+      // 1. There are three match groups in the mentioned regular expression
+      // 2. There are no scenarios where the first can match without one of the other two matching
       resultPromise = fetchFromServer("getplaylist", "playlistID", playlistID);
     } else if (
       (urlMatch = input.match(
@@ -788,12 +818,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   deserializeEl.addEventListener("change", async function () {
-    if (this.files !== null) {
+    if (this.files !== null && this.files[0] != null) {
       const file = this.files[0];
       const gen = deserialize(file);
       main(gen);
     } else {
-      throwHTMLErrorExpression();
+      throw "No File selected";
     }
   });
 });

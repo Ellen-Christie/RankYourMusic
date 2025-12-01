@@ -1,7 +1,8 @@
 import os
 
 import googleapiclient.discovery
-from bandcamp_api import Bandcamp
+
+# from bandcamp_api import Bandcamp
 from flask import Flask, abort, jsonify, request
 from flask_cors import CORS
 from googleapiclient.errors import HttpError
@@ -18,7 +19,7 @@ youtube = googleapiclient.discovery.build(
     developerKey=os.environ["YOUTUBE_API_KEY"],
 )
 
-bc = Bandcamp()
+# bc = Bandcamp()
 
 
 @app.route("/getplaylist", methods=["GET"])
@@ -76,25 +77,25 @@ def getplaylistitems():
         return list_of_videos
 
 
-@app.route("/getbandcampalbum", methods=["GET"])
-def getalbum():
-    album_url = request.args.get("albumURL")
-    if album_url is None:
-        abort(400)
-    album = bc.get_album(album_url=album_url)
-    if album.album_title == "":
-        the_response = jsonify({"err": "Album not found. Is the URL correct?"})
-        the_response.status = 400
-        abort(the_response)
-    return [
-        {
-            "type": "bandcampTrack",
-            "title": x.track_title,
-            "artist": x.artist_title,
-            "albumID": album.album_id,
-            "trackID": x.track_id,
-            "albumTitle": album.album_title,
-            "albumArt": x.art_url,
-        }
-        for x in album.tracks
-    ]
+# @app.route("/getbandcampalbum", methods=["GET"])
+# def getalbum():
+#     album_url = request.args.get("albumURL")
+#     if album_url is None:
+#         abort(400)
+#     album = bc.get_album(album_url=album_url)
+#     if album.album_title == "":
+#         the_response = jsonify({"err": "Album not found. Is the URL correct?"})
+#         the_response.status = 400
+#         abort(the_response)
+#     return [
+#         {
+#             "type": "bandcampTrack",
+#             "title": x.track_title,
+#             "artist": x.artist_title,
+#             "albumID": album.album_id,
+#             "trackID": x.track_id,
+#             "albumTitle": album.album_title,
+#             "albumArt": x.art_url,
+#         }
+#         for x in album.tracks
+#     ]
